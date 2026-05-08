@@ -3,1611 +3,679 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Procurement Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <title>Procurement Performance Tracker</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
 
-    header { background: #1a1a2e; color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-    header h1 { font-size: 1.1rem; font-weight: 600; }
-    .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-    .wh-filter { display: flex; align-items: center; gap: 6px; font-size: .8rem; position: relative; }
-    .wh-filter label { color: #8892a4; }
-    .wh-btn { background: #2d3748; border: 1px solid #4a5568; color: #fff; border-radius: 5px; padding: 4px 10px; font-size: .8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-    .wh-btn:hover { background: #3a4a5c; }
-    .wh-btn .chevron { font-size: .6rem; transition: transform .15s; }
-    .wh-btn.open .chevron { transform: rotate(180deg); }
-    .wh-dropdown { display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #1e2a3a; border: 1px solid #4a5568; border-radius: 7px; min-width: 210px; max-height: 420px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,.3); z-index: 100; }
-    .wh-dropdown.open { display: block; }
-    .wh-option { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 22px; cursor: pointer; font-size: .76rem; color: #cbd5e0; transition: background .1s; }
-    .wh-option:hover { background: #2d3748; }
-    .wh-option input[type="checkbox"] { accent-color: #667eea; width: 13px; height: 13px; cursor: pointer; }
-    .wh-option.all-opt { border-bottom: 1px solid #4a5568; color: #fff; font-weight: 600; padding-left: 12px; }
-    .wh-group-hdr { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px 4px; font-size: .68rem; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: .5px; cursor: pointer; border-top: 1px solid #2d3748; }
-    .wh-group-hdr:hover { background: #253347; }
-    .wh-group-hdr:first-child { border-top: none; }
-    .wh-group-hdr .grp-hint { font-size: .6rem; color: #4a5568; font-weight: 400; text-transform: none; letter-spacing: 0; }
-    #last-updated { font-size: .74rem; color: #8892a4; }
-
-    .data-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 9px 28px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-    .data-source { display: flex; align-items: center; gap: 7px; font-size: .75rem; }
-    .data-source .ds-label { font-weight: 700; color: #4a5568; }
-    .ds-status { display: flex; align-items: center; gap: 4px; font-size: .72rem; }
-    .ds-dot { width: 7px; height: 7px; border-radius: 50%; background: #a0aec0; flex-shrink: 0; }
-    .ds-dot.ok  { background: #48bb78; }
-    .ds-dot.err { background: #f56565; }
-    .ds-dot.loading { background: #ecc94b; animation: pulse 1s infinite; }
-    .ds-text { color: #718096; }
-    .refresh-btn { margin-left: auto; padding: 6px 14px; background: #1a1a2e; color: #fff; border: none; border-radius: 6px; font-size: .75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .refresh-btn:hover { background: #2d3748; }
+    /* ── Header ── */
+    header { background: #1a1a2e; color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: .3px; }
+    .header-meta { font-size: .73rem; color: #8892a4; }
+    .refresh-btn { padding: 6px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .refresh-btn:hover { background: #5a6fd6; }
     .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
     .spin { display: inline-block; }
     .spin.active { animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .manual-toggle { font-size: .7rem; color: #a0aec0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
-    .manual-upload { background: #f7fafc; border-bottom: 1px solid #e2e8f0; padding: 8px 28px; display: none; gap: 24px; align-items: center; flex-wrap: wrap; }
-    .manual-upload.open { display: flex; }
-    .upload-group { display: flex; flex-direction: column; gap: 2px; }
-    .upload-group label { font-size: .72rem; font-weight: 700; color: #4a5568; }
-    .upload-group .sub { font-size: .66rem; color: #a0aec0; }
-    .upload-group input[type="file"] { font-size: .73rem; color: #4a5568; }
 
-    .main { padding: 18px 28px; display: flex; flex-direction: column; gap: 18px; }
+    /* ── Status bar ── */
+    .status-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 8px 28px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-size: .73rem; }
+    .ds-item { display: flex; align-items: center; gap: 5px; }
+    .ds-dot { width: 7px; height: 7px; border-radius: 50%; background: #a0aec0; }
+    .ds-dot.ok { background: #48bb78; }
+    .ds-dot.err { background: #f56565; }
+    .ds-dot.loading { background: #ecc94b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .ds-label { font-weight: 700; color: #4a5568; }
+    .ds-text { color: #718096; }
+    .status-right { margin-left: auto; font-size: .7rem; color: #a0aec0; }
 
-    /* KPI */
-    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
-    .kpi-card { background: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid transparent; }
-    .kpi-card.green  { border-color: #48bb78; }
-    .kpi-card.yellow { border-color: #ecc94b; }
-    .kpi-card.orange { border-color: #ed8936; }
-    .kpi-card.red    { border-color: #f56565; }
-    .kpi-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #718096; margin-bottom: 4px; }
-    .kpi-value { font-size: 1.85rem; font-weight: 700; line-height: 1; margin-bottom: 3px; }
-    .kpi-card.green  .kpi-value { color: #276749; }
-    .kpi-card.yellow .kpi-value { color: #744210; }
-    .kpi-card.orange .kpi-value { color: #7b341e; }
-    .kpi-card.red    .kpi-value { color: #822727; }
-    .kpi-sub { font-size: .71rem; color: #a0aec0; }
-    .kpi-delta { font-size: .72rem; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 3px; }
-    .kpi-delta.good { color: #48bb78; }
-    .kpi-delta.bad  { color: #f56565; }
-    .kpi-delta.flat { color: #a0aec0; }
+    /* ── Layout ── */
+    .page { padding: 20px 28px; max-width: 1600px; margin: 0 auto; }
+    .section-title { font-size: .8rem; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: .8px; margin: 0 0 12px; }
+    .section-divider { margin: 28px 0 20px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
 
-    /* Flags */
-    .flags-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
-    .flags-header { padding: 14px 20px 0; display: flex; align-items: center; justify-content: space-between; }
-    .flags-header h2 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #4a5568; display: flex; align-items: center; gap: 8px; }
-    .flags-header h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: #f56565; display: inline-block; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .flags-legend { display: flex; gap: 14px; font-size: .68rem; color: #718096; padding-bottom: 10px; }
-    .flags-legend span { display: flex; align-items: center; gap: 4px; }
-    .flags-legend .dot { width: 8px; height: 8px; border-radius: 2px; }
-    .dot-crit { background: #f56565; }
-    .dot-high { background: #ed8936; }
-    .dot-watch { background: #ecc94b; }
+    /* ── Grade badge ── */
+    .grade { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+    .grade-A { background: #c6f6d5; color: #22543d; }
+    .grade-B { background: #bee3f8; color: #1a365d; }
+    .grade-C { background: #fefcbf; color: #744210; }
+    .grade-D { background: #fed7aa; color: #7b341e; }
+    .grade-F { background: #fed7d7; color: #742a2a; }
 
-    .flags-table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .79rem; }
-    th { background: #f7fafc; color: #718096; font-weight: 700; text-align: left; padding: 7px 12px; border-bottom: 1px solid #e2e8f0; font-size: .68rem; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
-    td { padding: 8px 12px; border-bottom: 1px solid #f0f4f8; color: #2d3748; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #fafbfc; }
-    .flag-row-crit td:first-child { border-left: 3px solid #f56565; }
-    .flag-row-high td:first-child { border-left: 3px solid #ed8936; }
-    .flag-row-watch td:first-child { border-left: 3px solid #ecc94b; }
-    .trunc { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* ── Person group ── */
+    .person-group { margin-bottom: 28px; }
+    .person-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .person-name { font-size: .95rem; font-weight: 700; color: #2d3748; }
+    .person-avg-grade { font-size: .75rem; color: #718096; }
 
-    /* Charts */
-    .chart-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; }
-    .card { background: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .card h2 { font-size: .75rem; font-weight: 700; color: #4a5568; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
-    .chart-wrap { position: relative; height: 200px; }
+    /* ── Market cards grid ── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 
-    /* Table cards */
-    .table-card { background: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .table-card h2 { font-size: .75rem; font-weight: 700; color: #4a5568; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: 8px; }
+    .market-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow .15s; }
+    .market-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .card-header { display: flex; align-items: center; gap: 10px; }
+    .card-wh { font-size: 1rem; font-weight: 800; color: #1a1a2e; }
+    .card-sub { font-size: .7rem; color: #a0aec0; }
+    .card-score-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+    .card-score-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+    .fill-A { background: #48bb78; }
+    .fill-B { background: #4299e1; }
+    .fill-C { background: #ecc94b; }
+    .fill-D { background: #ed8936; }
+    .fill-F { background: #f56565; }
 
-    /* Download button */
-    .dl-btn { margin-left: auto; padding: 3px 10px; font-size: .68rem; font-weight: 600; background: #f0f4ff; color: #667eea; border: 1px solid #c3d0f5; border-radius: 5px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-    .dl-btn:hover { background: #e0e8ff; }
+    .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .metric { display: flex; flex-direction: column; gap: 1px; }
+    .metric-label { font-size: .64rem; color: #a0aec0; text-transform: uppercase; letter-spacing: .4px; }
+    .metric-value { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
+    .metric-delta { font-size: .65rem; font-weight: 600; }
+    .delta-up { color: #48bb78; }
+    .delta-dn { color: #f56565; }
+    .delta-flat { color: #a0aec0; }
 
-    /* Badges */
-    .badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: .67rem; font-weight: 700; white-space: nowrap; }
-    .badge-crit   { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
-    .badge-high   { background: #fffaf0; color: #c05621; border: 1px solid #fbd38d; }
-    .badge-watch  { background: #fffff0; color: #b7791f; border: 1px solid #faf089; }
-    .badge-green  { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
-    .badge-blue   { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
-    .badge-gray   { background: #f7fafc; color: #718096; border: 1px solid #e2e8f0; }
-    .pill-count   { background: #fed7d7; color: #c53030; border-radius: 999px; padding: 1px 7px; font-size: .67rem; font-weight: 700; }
-    .pill-orange  { background: #feebc8; color: #c05621; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag { font-size: .62rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+    .tag-warn  { background: #fefcbf; color: #744210; }
+    .tag-alert { background: #fed7d7; color: #742a2a; }
+    .tag-ok    { background: #c6f6d5; color: #22543d; }
+    .tag-info  { background: #e9d8fd; color: #44337a; }
 
-    .empty { color: #a0aec0; font-size: .78rem; padding: 20px 0; text-align: center; }
+    .no-data-card { background: #f7fafc; border: 1px dashed #cbd5e0; color: #a0aec0; font-size: .78rem; display: flex; align-items: center; justify-content: center; padding: 20px; border-radius: 12px; text-align: center; }
 
-    /* Expand / collapse */
-    .expand-row td { padding: 0; border: none; }
-    .expand-btn {
-      width: 100%; padding: 9px 12px; background: #f7fafc; border: none; border-top: 1px solid #e2e8f0;
-      color: #667eea; font-size: .75rem; font-weight: 600; cursor: pointer; text-align: center;
-      letter-spacing: .3px; transition: background .15s;
-    }
-    .expand-btn:hover { background: #edf2ff; }
+    /* ── Leaderboard ── */
+    .leaderboard-wrap { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+    .leaderboard-header { background: #1a1a2e; color: #fff; padding: 12px 18px; font-size: .8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .lb-lock { font-size: .72rem; color: #8892a4; font-weight: 400; }
+    table.leaderboard { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    table.leaderboard th { background: #f7fafc; color: #718096; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 8px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    table.leaderboard td { padding: 9px 14px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+    table.leaderboard tr:last-child td { border-bottom: none; }
+    table.leaderboard tr:hover td { background: #f7fafc; }
+    .rank-num { font-size: .85rem; font-weight: 800; color: #2d3748; width: 28px; }
+    .rank-1 .rank-num { color: #d69e2e; }
+    .rank-2 .rank-num { color: #718096; }
+    .rank-3 .rank-num { color: #c05621; }
+    .trend-chip { display: inline-block; font-size: .65rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; }
+    .trend-up { background: #c6f6d5; color: #22543d; }
+    .trend-dn { background: #fed7d7; color: #742a2a; }
+    .trend-flat { background: #e2e8f0; color: #718096; }
 
-    @media (max-width: 1100px) { .chart-row { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2,1fr); } .chart-row { grid-template-columns: 1fr; } .main { padding: 12px; } }
+    /* ── History chart placeholder ── */
+    .history-wrap { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 16px; }
+    .history-select { font-size: .78rem; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 6px; color: #2d3748; }
+    .history-canvas-wrap { margin-top: 12px; height: 200px; position: relative; }
+    canvas#historyChart { width: 100% !important; height: 100% !important; }
+
+    /* ── Snapshot counter ── */
+    .snap-info { font-size: .72rem; color: #a0aec0; margin-bottom: 8px; }
+    .snap-info strong { color: #2d3748; }
+
+    /* ── Loading/error states ── */
+    #loading-overlay { display: flex; align-items: center; justify-content: center; padding: 80px 20px; flex-direction: column; gap: 12px; }
+    .spinner-lg { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #667eea; border-radius: 50%; animation: spin .8s linear infinite; }
+    #loading-overlay p { font-size: .85rem; color: #718096; }
+
+    #error-banner { background: #fed7d7; border: 1px solid #f56565; color: #742a2a; border-radius: 8px; padding: 10px 16px; font-size: .8rem; margin-bottom: 16px; display: none; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Procurement Dashboard</h1>
-  <div class="header-right">
-    <div class="wh-filter" id="wh-filter">
-      <label>Warehouse</label>
-      <button class="wh-btn" id="wh-btn">All Warehouses <span class="chevron">▼</span></button>
-      <div class="wh-dropdown" id="wh-dropdown">
-        <label class="wh-option all-opt">
-          <input type="checkbox" id="wh-all" checked /> All Warehouses
-        </label>
-      </div>
-    </div>
-    <span id="last-updated">No data loaded</span>
-  </div>
+  <h1>📊 Procurement Performance Tracker</h1>
+  <div class="header-meta" id="last-snapshot">No snapshot yet today</div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadAndProcess()">
+    <span class="spin" id="spin">↻</span> Refresh Data
+  </button>
 </header>
 
-<div class="data-bar">
-  <div class="data-source">
-    <span class="ds-label">Inventory</span>
-    <div class="ds-status">
-      <span class="ds-dot" id="inv-dot"></span>
-      <span class="ds-text" id="inv-status">Not loaded</span>
-    </div>
-  </div>
-  <div class="data-source">
-    <span class="ds-label">FEOOS</span>
-    <div class="ds-status">
-      <span class="ds-dot" id="feoos-dot"></span>
-      <span class="ds-text" id="feoos-status">Not loaded</span>
-    </div>
-  </div>
-  <div class="data-source">
-    <span class="ds-label">Purchase Orders</span>
-    <div class="ds-status">
-      <span class="ds-dot" id="pos-dot"></span>
-      <span class="ds-text" id="pos-status">Not loaded</span>
-    </div>
-  </div>
-  <span class="manual-toggle" id="manual-toggle">manual override</span>
-  <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">
-    <span class="spin" id="spin-icon">↻</span> Refresh Data
-  </button>
+<div class="status-bar">
+  <div class="ds-item"><span class="ds-dot" id="dot-inv"></span><span class="ds-label">Inventory</span><span class="ds-text" id="txt-inv">—</span></div>
+  <div class="ds-item"><span class="ds-dot" id="dot-feoos"></span><span class="ds-label">FEOOS</span><span class="ds-text" id="txt-feoos">—</span></div>
+  <div class="ds-item"><span class="ds-dot" id="dot-pos"></span><span class="ds-label">POs</span><span class="ds-text" id="txt-pos">—</span></div>
+  <div class="status-right" id="snap-count-bar"></div>
 </div>
 
-<div class="manual-upload" id="manual-upload">
-  <div class="upload-group">
-    <label>Inventory CSV (override)</label>
-    <span class="sub">Replaces live Google Sheet data</span>
-    <input type="file" id="inv-file" accept=".csv" />
+<div class="page">
+  <div id="error-banner"></div>
+  <div id="loading-overlay">
+    <div class="spinner-lg"></div>
+    <p>Loading performance data…</p>
   </div>
-  <div class="upload-group">
-    <label>FEOOS CSV (override)</label>
-    <span class="sub">Replaces live Google Sheet data</span>
-    <input type="file" id="feoos-file" accept=".csv" />
-  </div>
-  <div class="upload-group">
-    <label>Purchase Orders CSV (override)</label>
-    <span class="sub">Replaces live Google Sheet data</span>
-    <input type="file" id="pos-file" accept=".csv" />
-  </div>
-</div>
+  <div id="main-content" style="display:none">
+    <!-- Market cards by person -->
+    <div id="cards-section"></div>
 
-<div class="main">
-
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi-card green">
-      <div class="kpi-label">Net In-Stock Rate</div>
-      <div class="kpi-value" id="kpi-instock">—</div>
-      <div class="kpi-sub" id="kpi-instock-sub">Upload inventory CSV</div>
-      <div class="kpi-delta flat" id="delta-instock"></div>
-    </div>
-    <div class="kpi-card red">
-      <div class="kpi-label">On-Hand OOS SKUs</div>
-      <div class="kpi-value" id="kpi-oos">—</div>
-      <div class="kpi-sub" id="kpi-oos-sub">In-catalog, inventory = 0</div>
-      <div class="kpi-delta flat" id="delta-oos"></div>
-    </div>
-    <div class="kpi-card orange">
-      <div class="kpi-label">FEOOS Events (14d)</div>
-      <div class="kpi-value" id="kpi-feoos">—</div>
-      <div class="kpi-sub" id="kpi-feoos-sub">Upload FEOOS CSV</div>
-      <div class="kpi-delta flat" id="delta-feoos"></div>
-    </div>
-    <div class="kpi-card yellow">
-      <div class="kpi-label">Items w/ Past Due POs</div>
-      <div class="kpi-value" id="kpi-pastdue">—</div>
-      <div class="kpi-sub" id="kpi-pastdue-sub">SKUs with past_due qty > 0</div>
-      <div class="kpi-delta flat" id="delta-pastdue"></div>
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="chart-row">
-    <div class="card">
-      <h2>FEOOS by Warehouse (14d)</h2>
-      <div class="chart-wrap"><canvas id="chart-feoos-wh"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Top 10 FEOOS Items</h2>
-      <div class="chart-wrap"><canvas id="chart-feoos-items"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Days of Cover — Distribution</h2>
-      <div class="chart-wrap"><canvas id="chart-doc"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Priority Flags -->
-  <div class="flags-section">
-    <div class="flags-header">
-      <h2><span class="dot"></span> Priority Action Flags <button class="dl-btn" onclick="downloadCSV('flags-tbody')">⬇ CSV</button></h2>
-      <div class="flags-legend">
-        <span><span class="dot dot-crit"></span> Critical — OOS + Active Customer Demand</span>
-        <span><span class="dot dot-high"></span> High — At Risk + Demand or Past Due + OOS</span>
-        <span><span class="dot dot-watch"></span> Watch — Past Due PO with FEOOS Activity</span>
+    <!-- Leaderboard -->
+    <div class="section-divider" id="leaderboard-section" style="display:none">
+      <div class="section-title">📈 Cross-Market Leaderboard</div>
+      <p class="snap-info" id="lb-snap-info"></p>
+      <div class="leaderboard-wrap">
+        <div class="leaderboard-header">
+          Market Rankings — Size-Weighted Performance
+          <span class="lb-lock" id="lb-lock"></span>
+        </div>
+        <table class="leaderboard" id="lb-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Market</th>
+              <th>Manager</th>
+              <th>Grade</th>
+              <th>Score</th>
+              <th>In-Stock</th>
+              <th>OOS</th>
+              <th>FEOOS</th>
+              <th>Avg DoC</th>
+              <th>7d Trend</th>
+              <th>14d Trend</th>
+            </tr>
+          </thead>
+          <tbody id="lb-tbody"></tbody>
+        </table>
       </div>
     </div>
-    <div class="flags-table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Priority</th>
-            <th>Item</th>
-            <th>Warehouse</th>
-            <th>Issues</th>
-            <th>FEOOS Qty (14d)</th>
-            <th>FEOOS Events</th>
-            <th>Locations Hit</th>
-            <th>On Hand</th>
-            <th>Net DoC</th>
-            <th>Next PO Delivery</th>
-          </tr>
-        </thead>
-        <tbody id="flags-tbody"></tbody>
-      </table>
+
+    <!-- History chart -->
+    <div class="section-divider" id="history-section" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="section-title" style="margin:0">📉 In-Stock Rate History</div>
+        <select class="history-select" id="history-wh" onchange="renderHistory()">
+          <option value="">— Select Market —</option>
+        </select>
+      </div>
+      <div class="history-wrap">
+        <div class="history-canvas-wrap">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- Past Due POs -->
-  <div class="table-card">
-    <h2>Past Due PO Items <span class="pill-count pill-orange" id="pastdue-count"></span> <button class="dl-btn" onclick="downloadCSV('pastdue-tbody')">⬇ CSV</button></h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Warehouse</th>
-          <th>Vendor</th>
-          <th>PO Number</th>
-          <th>Expected Date</th>
-          <th>Days Overdue</th>
-          <th>Ordered Qty</th>
-          <th>Received Qty</th>
-          <th>Outstanding</th>
-          <th>FEOOS (14d)</th>
-        </tr>
-      </thead>
-      <tbody id="pastdue-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- OOS Items -->
-  <div class="table-card">
-    <h2>On-Hand OOS Items (In Catalog) <span class="pill-count" id="oos-count"></span> <button class="dl-btn" onclick="downloadCSV('oos-tbody')">⬇ CSV</button></h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Category</th>
-          <th>Vendor</th>
-          <th>Warehouse</th>
-          <th>OOS Since</th>
-          <th>Consumption/Day</th>
-          <th>Net Inventory</th>
-          <th>Net DoC</th>
-          <th>Next PO Delivery</th>
-          <th>FEOOS (14d)</th>
-        </tr>
-      </thead>
-      <tbody id="oos-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- +14 Day Past Due POs -->
-  <div class="table-card">
-    <h2>Purchase Orders +14 Days Past Due <span class="pill-count" id="po14-count"></span> <button class="dl-btn" onclick="downloadCSV('po14-tbody')">⬇ CSV</button></h2>
-    <table>
-      <thead>
-        <tr>
-          <th>PO Number</th>
-          <th>Vendor</th>
-          <th>Warehouse</th>
-          <th>Expected Date</th>
-          <th>Days Overdue</th>
-          <th>Lines</th>
-          <th>Ordered Qty</th>
-          <th>Received Qty</th>
-          <th>Outstanding</th>
-          <th>FEOOS (14d)</th>
-        </tr>
-      </thead>
-      <tbody id="po14-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- Coverage Gap -->
-  <div class="table-card">
-    <h2>⚠️ On-Hand Won't Cover Until Next PO <span class="pill-count pill-orange" id="gap-count"></span> <button class="dl-btn" onclick="downloadCSV('gap-tbody')">⬇ CSV</button></h2>
-    <p style="font-size:.72rem;color:#a0aec0;margin-bottom:10px;">Items where current on-hand (<code>est_days_of_cover</code>) runs out before <code>next_po_delivery_date</code> — will go OOS before replenishment arrives.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Category</th>
-          <th>Vendor</th>
-          <th>Warehouse</th>
-          <th>On-Hand DoC</th>
-          <th>Next PO Delivery</th>
-          <th>Days Until PO</th>
-          <th>Gap (OOS Days)</th>
-          <th>Net DoC (Pipeline)</th>
-          <th>FEOOS (14d)</th>
-          <th>Consumption/Day</th>
-        </tr>
-      </thead>
-      <tbody id="gap-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- Overpurchased POs -->
-  <div class="table-card">
-    <h2>📦 PO Quantities Exceeding 100 Days of Coverage <span class="pill-count pill-orange" id="overpurchased-count"></span> <button class="dl-btn" onclick="downloadCSV('overpurchased-tbody')">⬇ CSV</button></h2>
-    <p style="font-size:.72rem;color:#a0aec0;margin-bottom:10px;">Open PO lines where ordered quantity ÷ daily consumption rate exceeds 100 days of supply. Excludes received and closed orders.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Warehouse</th>
-          <th>Vendor</th>
-          <th>PO Number</th>
-          <th>Expected Date</th>
-          <th>PO Qty</th>
-          <th>Consumption/Day</th>
-          <th>PO Days of Cover</th>
-          <th>FEOOS (14d)</th>
-        </tr>
-      </thead>
-      <tbody id="overpurchased-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- Expiration Risk -->
-  <div class="table-card">
-    <h2>🕒 Expiration Risk <span class="pill-count pill-orange" id="expiry-count"></span> <button class="dl-btn" onclick="downloadCSV('expiry-tbody')">⬇ CSV</button></h2>
-    <p style="font-size:.72rem;color:#a0aec0;margin-bottom:10px;">Items with expired or near-expiry stock at current run rate. <strong>Unsellable After</strong> = min expiration date − minimum deliverable shelf life. Best transfer warehouse is the same-item site with the lowest net DoC where the stock would still be sellable.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Warehouse</th>
-          <th>Vendor</th>
-          <th>Expiring Qty</th>
-          <th>Best Transfer WH</th>
-          <th>Transfer Net DoC</th>
-          <th>DoC Added by Transfer</th>
-        </tr>
-      </thead>
-      <tbody id="expiry-tbody"></tbody>
-    </table>
-  </div>
-
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// ─── State ────────────────────────────────────────────────────────────────────
-let state = { rows: [], feoos: [], pos: [], warehouses: new Set() }; // empty Set = All
-let charts = {};
+'use strict';
 
-// ─── Expand / collapse ────────────────────────────────────────────────────────
-const PAGE = 20;
-const PAGE_SIZES = { 'pastdue-tbody': 10, 'oos-tbody': 10, 'po14-tbody': 10, 'gap-tbody': 10, 'overpurchased-tbody': 10, 'expiry-tbody': 10 };
-const expanded  = {};   // tbodyId -> bool
-const tableRows = {};   // tbodyId -> array of html strings
-const tableData = {};   // tbodyId -> array of plain objects (for CSV export)
+// ─── Config ──────────────────────────────────────────────────────────────────
+const SNAP_KEY    = 'perf_snapshots_v1';
+const MAX_DAYS    = 60;
+const MIN_COMPARE = 14;
 
-function renderTable(tbodyId, htmlRows, colSpan, dataRows) {
-  tableRows[tbodyId] = htmlRows;
-  if (dataRows) tableData[tbodyId] = dataRows;
-  const isExp = expanded[tbodyId] || false;
-  const pageSize = PAGE_SIZES[tbodyId] ?? PAGE;
-  const visible = isExp ? htmlRows : htmlRows.slice(0, pageSize);
-  let html = visible.join('');
-  if (htmlRows.length > pageSize) {
-    const more = htmlRows.length - pageSize;
-    html += `<tr class="expand-row"><td colspan="${colSpan}">
-      <button class="expand-btn" data-tbody="${tbodyId}">
-        ${isExp ? '▲ Show less' : `▼ Show all ${htmlRows.length} rows — ${more} more`}
-      </button></td></tr>`;
-  }
-  document.getElementById(tbodyId).innerHTML = html;
-}
-
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.expand-btn');
-  if (!btn) return;
-  const id = btn.dataset.tbody;
-  expanded[id] = !expanded[id];
-  const cols = btn.closest('table').querySelectorAll('th').length;
-  renderTable(id, tableRows[id] || [], cols);
-});
-
-// ─── CSV export ───────────────────────────────────────────────────────────────
-function downloadCSV(tbodyId) {
-  const data = tableData[tbodyId];
-  if (!data || !data.length) { alert('No data to export yet — load data first.'); return; }
-  const headers = Object.keys(data[0]);
-  const escape  = v => { const s = v == null ? '' : String(v); return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g,'""')}"` : s; };
-  const csv     = [headers.join(','), ...data.map(r => headers.map(h => escape(r[h])).join(','))].join('\n');
-  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], {type:'text/csv'})), download: tbodyId.replace('-tbody','') + '.csv' });
-  a.click(); URL.revokeObjectURL(a.href);
-}
-
-// ─── CSV parser (handles quoted fields) ───────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
-  if (!lines.length) return [];
-  function splitLine(line) {
-    const fields = []; let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
-      else if (ch===',' && !inQ) { fields.push(cur.trim()); cur=''; }
-      else cur+=ch;
-    }
-    fields.push(cur.trim()); return fields;
-  }
-  const headers = splitLine(lines[0]).map(h =>
-    h.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')
-  );
-  return lines.slice(1).filter(l=>l.trim()).map(line => {
-    const vals = splitLine(line);
-    const obj = {};
-    headers.forEach((h,i) => obj[h] = (vals[i]??'').replace(/^"|"$/g,''));
-    return obj;
-  });
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const num  = v => { const n=parseFloat(v); return isNaN(n)?0:n; };
-const bool = v => String(v).toUpperCase()==='TRUE';
-const topCat = v => (v||'').split(':')[0].trim();
-
-function normName(s) {
-  return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
-}
-
-function docBadge(v) {
-  const d=num(v);
-  if(!isFinite(d)||d>9999) return `<span class="badge badge-green">∞</span>`;
-  if(d<=0)  return `<span class="badge badge-crit">OOS</span>`;
-  if(d<=7)  return `<span class="badge badge-crit">${d.toFixed(0)}d</span>`;
-  if(d<=14) return `<span class="badge badge-high">${d.toFixed(0)}d</span>`;
-  if(d<=30) return `<span class="badge badge-watch">${d.toFixed(0)}d</span>`;
-  return `<span class="badge badge-green">${d.toFixed(0)}d</span>`;
-}
-
-function oosSinceBadge(dateStr, today) {
-  if(!dateStr) return '<span class="badge badge-gray">Unknown</span>';
-  const d=Math.round((today-new Date(dateStr))/86400000);
-  if(d<=0)  return `<span class="badge badge-watch">Today</span>`;
-  if(d<=3)  return `<span class="badge badge-high">${d}d ago</span>`;
-  return `<span class="badge badge-crit">${d}d ago</span>`;
-}
-
-// ─── FEOOS index ──────────────────────────────────────────────────────────────
-function buildFeooIndex(feoos) {
-  // key: warehouse::normName
-  const idx = {};
-  feoos.forEach(f => {
-    const wh  = (f.warehouse||'').trim();
-    const key = wh + '::' + normName(f.item_name);
-    if (!idx[key]) idx[key] = { qty:0, events:0, locations: new Set(), item_name: f.item_name, brand: f.brand_name, warehouse: wh, earliestDate: f.feoos_event_date };
-    idx[key].qty    += num(f.quantity_of_feoos_items_requested_in_sales_units);
-    idx[key].events++;
-    idx[key].locations.add(f.location_name);
-    // Track earliest FEOOS event date
-    if (f.feoos_event_date && (!idx[key].earliestDate || f.feoos_event_date < idx[key].earliestDate)) {
-      idx[key].earliestDate = f.feoos_event_date;
-    }
-  });
-  return idx;
-}
-
-function feooLookup(idx, warehouseName, itemName) {
-  const key = warehouseName + '::' + normName(itemName);
-  return idx[key] || null;
-}
-
-// ─── Filtering ────────────────────────────────────────────────────────────────
-const whPattern = /^[A-Z0-9]{2,8}(-[A-Z0-9]+)?$/;
-const WH_EXCLUDE = new Set(['MHT1', 'SFO1']);
-
-function filtered() {
-  const base = state.rows.filter(r => r.warehouse_name && whPattern.test(r.warehouse_name.trim()) && !WH_EXCLUDE.has(r.warehouse_name));
-  if (!state.warehouses.size) return base;
-  return base.filter(r => state.warehouses.has(r.warehouse_name));
-}
-
-function feooFiltered() {
-  const base = state.feoos.filter(f => !WH_EXCLUDE.has(f.warehouse));
-  if (!state.warehouses.size) return base;
-  return base.filter(f => state.warehouses.has(f.warehouse));
-}
-
-function posFiltered() {
-  const base = state.pos.filter(p => !WH_EXCLUDE.has(p.warehouse_name));
-  if (!state.warehouses.size) return base;
-  return base.filter(p => state.warehouses.has(p.warehouse_name));
-}
-
-// PO helpers
-function vendorName(raw) { return (raw||'').replace(/^VEN\d+\s+/, ''); }
-
-function getPastDuePOs(pos) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  return pos.filter(p => {
-    if (!p.expected_receipt_date_date) return false;
-    // If shipment received date is set, the order was received or closed — omit
-    if (p.shipment_received_utc_date && p.shipment_received_utc_date.trim()) return false;
-    const ordered  = num(p.purchase_order_units);
-    const received = num(p.quantity_received_pu);
-    if (ordered > 0 && received >= ordered) return false; // fully received
-    const exp = new Date(p.expected_receipt_date_date); exp.setHours(0,0,0,0);
-    return exp < today;
-  });
-}
-
-function buildPosIndex(pos) {
-  // key: warehouse_name::normName(item_name) -> list of POs
-  const idx = {};
-  pos.forEach(p => {
-    const key = (p.warehouse_name||'') + '::' + normName(p.item_name);
-    (idx[key] = idx[key] || []).push(p);
-  });
-  return idx;
-}
-
-function posLookup(idx, warehouseName, itemName) {
-  return idx[(warehouseName||'') + '::' + normName(itemName)] || [];
-}
-
-// Earliest open PO date per warehouse::item — used as fallback when inventory
-// dump's next_po_delivery_date field is blank or missing
-function buildNextPoIdx() {
-  const idx = {};
-  if (!state.pos.length) return idx;
-  posFiltered().forEach(p => {
-    if (!p.expected_receipt_date_date) return;
-    if (p.shipment_received_utc_date && p.shipment_received_utc_date.trim()) return;
-    if (num(p.purchase_order_units) > 0 && num(p.quantity_received_pu) >= num(p.purchase_order_units)) return;
-    const key = (p.warehouse_name||'') + '::' + normName(p.item_name);
-    if (!idx[key] || p.expected_receipt_date_date < idx[key]) idx[key] = p.expected_receipt_date_date;
-  });
-  return idx;
-}
-
-function nextPoDate(r, nextPoIdx) {
-  return (r.next_po_delivery_date || r.next_po_delivery_date_date || '').trim()
-    || nextPoIdx[(r.warehouse_name||'')+'::'+normName(r.item_name)] || '';
-}
-
-// ─── KPI Cache (localStorage) ─────────────────────────────────────────────────
-const KPI_CACHE_KEY = 'procurement_kpi_v3'; // bumped to clear stale cached baselines
-
-function whCacheKey() {
-  if (!state.warehouses.size) return 'ALL';
-  const sel = [...state.warehouses].sort();
-  // If selection exactly matches a named group, use the person's name as the key
-  const matchedGroup = WH_GROUPS.find(g => {
-    const groupWhs = [...document.querySelectorAll(`label.wh-wh[data-group="${g.name}"] .wh-cb`)]
-      .map(c => c.value).sort();
-    return groupWhs.length === sel.length && groupWhs.every((w, i) => w === sel[i]);
-  });
-  return matchedGroup ? matchedGroup.name : sel.join(',');
-}
-
-function loadKpiCache() {
-  try { return JSON.parse(localStorage.getItem(KPI_CACHE_KEY)) || {}; }
-  catch { return {}; }
-}
-
-function updateKpiCache(today, values) {
-  const cache  = loadKpiCache();
-  const whKey  = whCacheKey();
-  const bucket = cache[whKey] || {};
-
-  // First load of a new day — roll current → previous
-  if (bucket.current && bucket.current.date !== today) {
-    bucket.previous = bucket.current;
-  }
-  // Only write current once per day
-  if (!bucket.current || bucket.current.date !== today) {
-    bucket.current = { date: today, ...values };
-  }
-  cache[whKey] = bucket;
-  localStorage.setItem(KPI_CACHE_KEY, JSON.stringify(cache));
-  return bucket.previous || null;
-}
-
-function renderDelta(elId, current, previous, higherIsBetter) {
-  const el = document.getElementById(elId);
-  if (previous == null || previous == null) { el.textContent = ''; return; }
-  const diff = current - previous;
-  if (diff === 0) { el.className = 'kpi-delta flat'; el.textContent = '— no change vs prior day'; return; }
-  const isGood = higherIsBetter ? diff > 0 : diff < 0;
-  const sign   = diff > 0 ? '+' : '';
-  const arrow  = diff > 0 ? '↑' : '↓';
-  el.className = `kpi-delta ${isGood ? 'good' : 'bad'}`;
-  el.textContent = `${arrow} ${sign}${typeof current === 'number' && !Number.isInteger(current) ? diff.toFixed(1) : Math.round(diff)} vs prior day`;
-}
-
-// ─── KPIs ─────────────────────────────────────────────────────────────────────
-function updateKPIs(rows, feoos) {
-  const catalog = rows.filter(r=>bool(r.in_catalog));
-  const total   = catalog.length;
-  const netIn   = catalog.filter(r=>num(r.net_inventory)>0).length;
-  const ohOOS   = catalog.filter(r=>num(r.inventory)<=0).length;
-  const pastDuePOs = getPastDuePOs(posFiltered());
-  const pastDue = state.pos.length
-    ? new Set(pastDuePOs.map(p => (p.warehouse_name||'') + '::' + normName(p.item_name))).size
-    : rows.filter(r=>num(r.past_due)>0).length;
-  const fTotal  = feoos.reduce((s,f)=>s+num(f.quantity_of_feoos_items_requested_in_sales_units),0);
-  const fItems  = new Set(feoos.map(f=>normName(f.item_name))).size;
-
-  const instockRate = total ? parseFloat((netIn/total*100).toFixed(1)) : null;
-
-  setText('kpi-instock',     total ? instockRate+'%' : '—');
-  setText('kpi-instock-sub', total ? `${netIn} of ${total} in-catalog SKUs` : 'Upload inventory CSV');
-  setText('kpi-oos',         total ? ohOOS : '—');
-  setText('kpi-oos-sub',     total ? `of ${total} in-catalog SKUs` : 'Upload inventory CSV');
-  setText('kpi-feoos',       feoos.length ? fTotal.toLocaleString() : '—');
-  setText('kpi-feoos-sub',   feoos.length ? `${feoos.length.toLocaleString()} events · ${fItems} unique items` : 'Upload FEOOS CSV');
-  setText('kpi-pastdue',     (total || state.pos.length) ? pastDue : '—');
-  const pastDueUnits = state.pos.length
-    ? pastDuePOs.reduce((s,p) => s + num(p.purchase_order_units) - num(p.quantity_received_pu), 0)
-    : rows.filter(r=>num(r.past_due)>0).reduce((s,r)=>s+num(r.past_due),0);
-  setText('kpi-pastdue-sub', (total || state.pos.length) ? `${Math.round(pastDueUnits).toLocaleString()} outstanding units` : 'Loading…');
-
-  // Cache & deltas — only write when ALL three sources are loaded to avoid
-  // corrupting the baseline with partial data (e.g. one source still fetching)
-  if (total && state.feoos.length && state.pos.length) {
-    const today = new Date().toISOString().slice(0,10);
-    const prev  = updateKpiCache(today, { instockRate, oosSkus: ohOOS, feoos: fTotal, pastDue });
-    if (prev) {
-      renderDelta('delta-instock', instockRate, prev.instockRate, true);
-      renderDelta('delta-oos',     ohOOS,       prev.oosSkus,     false);
-      renderDelta('delta-feoos',   fTotal,      prev.feoos,       false);
-      renderDelta('delta-pastdue', pastDue,     prev.pastDue,     false);
-    }
-  }
-}
-
-function setText(id,v){ document.getElementById(id).textContent=v; }
-
-// ─── Priority Flags ───────────────────────────────────────────────────────────
-function buildFlags(rows, feoos) {
-  const idx = buildFeooIndex(feoos);
-  const flags = [];
-
-  rows.forEach(r => {
-    const fe = feooLookup(idx, r.warehouse_name, r.item_name);
-    if (!fe) return; // only flag items with FEOOS activity
-
-    const isOOS     = num(r.inventory) <= 0;
-    const isPastDue = num(r.past_due) > 0;
-    const doc       = num(r.net_days_of_cover);
-    const lowDoc    = isFinite(doc) && doc > 0 && doc <= 14;
-
-    let priority = null;
-    const issues = [];
-
-    if (isOOS)     { issues.push('On-Hand OOS'); priority = 'CRITICAL'; }
-    if (isPastDue) { issues.push('Past Due PO'); if (!priority) priority = 'HIGH'; else priority = 'CRITICAL'; }
-    if (lowDoc)    { issues.push(`Low DoC (${doc.toFixed(0)}d)`); if (!priority) priority = 'HIGH'; }
-
-    if (!priority) return;
-
-    flags.push({
-      priority,
-      issues,
-      item_uuid:          r.item_uuid || '',
-      item_name:          r.item_name,
-      warehouse_name:     r.warehouse_name,
-      inventory:          num(r.inventory),
-      net_days_of_cover:  r.net_days_of_cover,
-      next_po_delivery_date: r.next_po_delivery_date,
-      _row: r,  // keep reference for PO date fallback lookup
-      feQty:     fe.qty,
-      feEvents:  fe.events,
-      feLocs:    fe.locations.size,
-    });
-  });
-
-  const order = { CRITICAL:0, HIGH:1, WATCH:2 };
-  return flags.sort((a,b) => (order[a.priority]-order[b.priority]) || (b.feQty-a.feQty));
-}
-
-function renderFlags(rows, feoos) {
-  const flags    = buildFlags(rows, feoos);
-  const nextPoIdx = buildNextPoIdx();
-  const tbody = document.getElementById('flags-tbody');
-
-  if (!rows.length && !feoos.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">Upload both CSVs to see priority flags</td></tr>';
-    return;
-  }
-  if (!flags.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">No flagged items — no FEOOS demand found on OOS or at-risk SKUs</td></tr>';
-    return;
-  }
-
-  renderTable('flags-tbody', flags.map(f => {
-    const rowClass = f.priority==='CRITICAL' ? 'flag-row-crit' : f.priority==='HIGH' ? 'flag-row-high' : 'flag-row-watch';
-    const badge    = f.priority==='CRITICAL' ? 'badge-crit' : f.priority==='HIGH' ? 'badge-high' : 'badge-watch';
-    const issueTags = f.issues.map(i=>`<span class="badge ${badge}" style="margin:1px">${i}</span>`).join(' ');
-    return `<tr class="${rowClass}">
-      <td><span class="badge ${badge}">${f.priority}</span></td>
-      <td class="trunc" title="${f.item_name}"><strong>${f.item_name}</strong></td>
-      <td><span class="badge badge-blue">${f.warehouse_name}</span></td>
-      <td>${issueTags}</td>
-      <td><strong>${f.feQty.toFixed(0)}</strong></td>
-      <td>${f.feEvents}</td>
-      <td>${f.feLocs}</td>
-      <td>${f.inventory.toFixed(0)}</td>
-      <td>${docBadge(f.net_days_of_cover)}</td>
-      <td>${nextPoDate(f._row, nextPoIdx) || '—'}</td>
-    </tr>`;
-  }), 10, flags.map(f => ({
-    'Item UUID':         f.item_uuid,
-    'Priority':          f.priority,
-    'Item':              f.item_name,
-    'Warehouse':         f.warehouse_name,
-    'Issues':            f.issues.join('; '),
-    'FEOOS Qty (14d)':   f.feQty.toFixed(0),
-    'FEOOS Events':      f.feEvents,
-    'Locations Hit':     f.feLocs,
-    'On Hand':           f.inventory.toFixed(0),
-    'Net DoC':           f.net_days_of_cover,
-    'Next PO Delivery':  nextPoDate(f._row, nextPoIdx),
-  })));
-}
-
-// ─── Charts ───────────────────────────────────────────────────────────────────
-function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
-
-const CHART_BASE = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } };
-
-function buildFeooWhChart(feoos) {
-  destroyChart('feoos-wh');
-  const ctx = document.getElementById('chart-feoos-wh').getContext('2d');
-  if (!feoos.length) { drawEmpty(ctx,'Upload FEOOS CSV'); return; }
-  const byWh = {};
-  feoos.forEach(f => {
-    const wh = f.warehouse||'Unknown';
-    byWh[wh] = (byWh[wh]||0) + num(f.quantity_of_feoos_items_requested_in_sales_units);
-  });
-  const sorted = Object.entries(byWh).sort((a,b)=>b[1]-a[1]);
-  charts['feoos-wh'] = new Chart(ctx,{
-    type:'bar',
-    data:{ labels:sorted.map(([k])=>k), datasets:[{ data:sorted.map(([,v])=>v), backgroundColor:'#ed893688', borderColor:'#ed8936', borderWidth:1 }] },
-    options:{ ...CHART_BASE, scales:{ x:{ticks:{font:{size:10}},grid:{display:false}}, y:{ticks:{font:{size:10}},grid:{color:'#f0f4f8'}} } }
-  });
-}
-
-function buildFeooItemsChart(feoos) {
-  destroyChart('feoos-items');
-  const ctx = document.getElementById('chart-feoos-items').getContext('2d');
-  if (!feoos.length) { drawEmpty(ctx,'Upload FEOOS CSV'); return; }
-  const byItem = {};
-  feoos.forEach(f => {
-    const k = f.item_name||'Unknown';
-    byItem[k] = (byItem[k]||0) + num(f.quantity_of_feoos_items_requested_in_sales_units);
-  });
-  const top = Object.entries(byItem).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  charts['feoos-items'] = new Chart(ctx,{
-    type:'bar',
-    data:{ labels:top.map(([k])=>k.length>30?k.slice(0,28)+'…':k), datasets:[{ data:top.map(([,v])=>v), backgroundColor:'#f5656588', borderColor:'#f56565', borderWidth:1 }] },
-    options:{ ...CHART_BASE, indexAxis:'y', scales:{ x:{ticks:{font:{size:9}},grid:{color:'#f0f4f8'}}, y:{ticks:{font:{size:8}},grid:{display:false}} } }
-  });
-}
-
-function buildDocChart(rows) {
-  destroyChart('doc');
-  const ctx = document.getElementById('chart-doc').getContext('2d');
-  if (!rows.length) { drawEmpty(ctx,'Upload inventory CSV'); return; }
-  const catalog = rows.filter(r=>bool(r.in_catalog));
-  const buckets = {'OOS (0)':0,'1–7d':0,'8–14d':0,'15–30d':0,'31–60d':0,'60d+':0};
-  catalog.forEach(r => {
-    const d=num(r.net_days_of_cover);
-    if(d<=0)       buckets['OOS (0)']++;
-    else if(d<=7)  buckets['1–7d']++;
-    else if(d<=14) buckets['8–14d']++;
-    else if(d<=30) buckets['15–30d']++;
-    else if(d<=60) buckets['31–60d']++;
-    else           buckets['60d+']++;
-  });
-  charts['doc'] = new Chart(ctx,{
-    type:'bar',
-    data:{ labels:Object.keys(buckets), datasets:[{ data:Object.values(buckets), backgroundColor:['#f56565','#ed8936','#ecc94b','#68d391','#48bb78','#38a169'], borderWidth:0 }] },
-    options:{ ...CHART_BASE, scales:{ x:{ticks:{font:{size:10}},grid:{display:false}}, y:{ticks:{font:{size:10},stepSize:1},grid:{color:'#f0f4f8'}} }, plugins:{...CHART_BASE.plugins, tooltip:{callbacks:{label:c=>` ${c.parsed.y} SKUs`}}} }
-  });
-}
-
-function drawEmpty(ctx, msg) {
-  ctx.fillStyle='#a0aec0'; ctx.font='13px -apple-system,sans-serif';
-  ctx.textAlign='center'; ctx.fillText(msg, ctx.canvas.width/2, 105);
-}
-
-// ─── Tables ───────────────────────────────────────────────────────────────────
-function renderPastDue(rows, feIdx) {
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // Prefer granular PO sheet; fall back to inventory dump
-  if (state.pos.length) {
-    const pastDue = getPastDuePOs(posFiltered())
-      .map(p => ({ ...p, daysOverdue: Math.ceil((today - new Date(p.expected_receipt_date_date)) / 86400000) }))
-      .sort((a,b) => b.daysOverdue - a.daysOverdue);
-
-    document.getElementById('pastdue-count').textContent = pastDue.length;
-    if (!pastDue.length) { document.getElementById('pastdue-tbody').innerHTML='<tr><td colspan="10" class="empty">No past due POs</td></tr>'; return; }
-
-    function overdueBadge(d) {
-      if (d >= 14) return `<span class="badge badge-crit">${d}d overdue</span>`;
-      if (d >= 7)  return `<span class="badge badge-high">${d}d overdue</span>`;
-      return `<span class="badge badge-watch">${d}d overdue</span>`;
-    }
-
-    renderTable('pastdue-tbody', pastDue.map(p => {
-      const fe  = feooLookup(feIdx, p.warehouse_name, p.item_name);
-      const outstanding = Math.max(0, num(p.purchase_order_units) - num(p.quantity_received_pu));
-      const feCell = fe ? `<strong>${fe.qty.toFixed(0)}</strong>` : '—';
-      return `<tr>
-        <td class="trunc" title="${p.item_name}"><strong>${p.item_name}</strong></td>
-        <td><span class="badge badge-blue">${p.warehouse_name}</span></td>
-        <td>${vendorName(p.full_vendor_name)}</td>
-        <td style="font-family:monospace;font-size:.73rem">${p.purchase_order_number}</td>
-        <td>${p.expected_receipt_date_date}</td>
-        <td>${overdueBadge(p.daysOverdue)}</td>
-        <td>${num(p.purchase_order_units).toFixed(0)} ${p.purchase_unit_name||''}</td>
-        <td>${num(p.quantity_received_pu).toFixed(0)}</td>
-        <td><strong>${outstanding.toFixed(0)}</strong></td>
-        <td>${feCell}</td>
-      </tr>`;
-    }), 10, pastDue.map(p => {
-      const fe = feooLookup(feIdx, p.warehouse_name, p.item_name);
-      const outstanding = Math.max(0, num(p.purchase_order_units) - num(p.quantity_received_pu));
-      return {
-        'Item UUID':      p.item_uuid || '',
-        'Item':           p.item_name,
-        'Warehouse':      p.warehouse_name,
-        'Vendor':         vendorName(p.full_vendor_name),
-        'PO Number':      p.purchase_order_number,
-        'Expected Date':  p.expected_receipt_date_date,
-        'Days Overdue':   p.daysOverdue,
-        'Ordered Qty':    num(p.purchase_order_units).toFixed(0),
-        'Received Qty':   num(p.quantity_received_pu).toFixed(0),
-        'Outstanding':    outstanding.toFixed(0),
-        'FEOOS (14d)':    fe ? fe.qty.toFixed(0) : '0',
-      };
-    }));
-    return;
-  }
-
-  // Fallback: inventory dump
-  const pastDue = rows.filter(r=>num(r.past_due)>0).sort((a,b)=>num(b.past_due)-num(a.past_due));
-  document.getElementById('pastdue-count').textContent = pastDue.length;
-  if (!pastDue.length) { document.getElementById('pastdue-tbody').innerHTML='<tr><td colspan="10" class="empty">No past due PO items</td></tr>'; return; }
-  renderTable('pastdue-tbody', pastDue.map(r => {
-    const fe = feooLookup(feIdx, r.warehouse_name, r.item_name);
-    const feCell = fe ? `<strong>${fe.qty.toFixed(0)}</strong>` : '—';
-    return `<tr>
-      <td class="trunc" title="${r.item_name}"><strong>${r.item_name}</strong></td>
-      <td><span class="badge badge-blue">${r.warehouse_name}</span></td>
-      <td>${r.vendor_name}</td>
-      <td style="font-family:monospace;font-size:.73rem">${r.purchase_orders_past_due||'—'}</td>
-      <td>—</td>
-      <td><span class="badge badge-crit">—</span></td>
-      <td>${num(r.past_due).toFixed(0)}</td>
-      <td>—</td>
-      <td><strong>${num(r.past_due).toFixed(0)}</strong></td>
-      <td>${feCell}</td>
-    </tr>`;
-  }), 10);
-}
-
-function renderOOS(rows, feIdx) {
-  const today = new Date();
-
-  const nextPoIdx = buildNextPoIdx();
-
-  const oos = rows.filter(r=>bool(r.in_catalog)&&num(r.inventory)<=0).sort((a,b)=>num(b.consumption_rate)-num(a.consumption_rate));
-  document.getElementById('oos-count').textContent = oos.length;
-  if (!oos.length) { document.getElementById('oos-tbody').innerHTML='<tr><td colspan="10" class="empty">No on-hand OOS items</td></tr>'; return; }
-  renderTable('oos-tbody', oos.map(r => {
-    const fe = feooLookup(feIdx, r.warehouse_name, r.item_name);
-    const feCell = fe ? `<strong>${fe.qty.toFixed(0)}</strong>` : (state.feoos.length?'0':'—');
-    const nextPo = nextPoDate(r, nextPoIdx);
-
-    // Inform OOS Since from FEOOS earliest event date
-    let oosSinceCell;
-    if (fe && fe.earliestDate) {
-      const daysBack = Math.round((today - new Date(fe.earliestDate)) / 86400000);
-      if (daysBack >= 14) {
-        oosSinceCell = `<span class="badge badge-crit">+14 Days</span>`;
-      } else {
-        oosSinceCell = oosSinceBadge(fe.earliestDate, today);
-      }
-    } else {
-      oosSinceCell = num(r.est_days_of_cover) === 0
-        ? `<span class="badge badge-watch">Today</span>`
-        : `<span class="badge badge-gray">Unknown</span>`;
-    }
-
-    return `<tr>
-      <td class="trunc" title="${r.item_name}"><strong>${r.item_name}</strong></td>
-      <td>${topCat(r.item_class)}</td>
-      <td>${r.vendor_name}</td>
-      <td><span class="badge badge-blue">${r.warehouse_name}</span></td>
-      <td>${oosSinceCell}</td>
-      <td>${(+r.consumption_rate||0).toFixed(2)}/day</td>
-      <td>${num(r.net_inventory).toFixed(0)}</td>
-      <td>${docBadge(r.net_days_of_cover)}</td>
-      <td>${nextPo||'—'}</td>
-      <td>${feCell}</td>
-    </tr>`;
-  }), 10, oos.map(r => {
-    const fe = feooLookup(feIdx, r.warehouse_name, r.item_name);
-    const np = nextPoDate(r, nextPoIdx);
-    const daysBack = fe?.earliestDate ? Math.round((today - new Date(fe.earliestDate)) / 86400000) : null;
-    const oosSince = fe?.earliestDate ? (daysBack >= 14 ? '+14 Days' : `${daysBack}d ago`) : (num(r.est_days_of_cover) === 0 ? 'Today' : 'Unknown');
-    return {
-      'Item UUID':         r.item_uuid || '',
-      'Item':              r.item_name,
-      'Category':          topCat(r.item_class),
-      'Vendor':            r.vendor_name,
-      'Warehouse':         r.warehouse_name,
-      'OOS Since':         oosSince,
-      'Consumption/Day':   (+r.consumption_rate||0).toFixed(2),
-      'Net Inventory':     num(r.net_inventory).toFixed(0),
-      'Net DoC':           r.net_days_of_cover,
-      'Next PO Delivery':  np,
-      'FEOOS (14d)':       fe ? fe.qty.toFixed(0) : '0',
-    };
-  }));
-}
-
-// ─── +14 Day Past Due POs — PO-level table ───────────────────────────────────
-function renderPo14(feIdx) {
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // Group past-due lines by PO number
-  const byPO = {};
-  getPastDuePOs(posFiltered()).forEach(p => {
-    const daysOverdue = Math.ceil((today - new Date(p.expected_receipt_date_date)) / 86400000);
-    if (daysOverdue < 14) return;
-    const po = p.purchase_order_number;
-    if (!byPO[po]) byPO[po] = {
-      purchase_order_number:    po,
-      vendor:                   vendorName(p.full_vendor_name),
-      warehouse_name:           p.warehouse_name,
-      expected_receipt_date_date: p.expected_receipt_date_date,
-      daysOverdue,
-      lines:       0,
-      ordered:     0,
-      received:    0,
-      feQty:       0,
-    };
-    const g = byPO[po];
-    g.lines++;
-    g.ordered  += num(p.purchase_order_units);
-    g.received += num(p.quantity_received_pu);
-    const fe = feooLookup(feIdx, p.warehouse_name, p.item_name);
-    if (fe) g.feQty += fe.qty;
-  });
-
-  const po14 = Object.values(byPO).sort((a, b) => b.daysOverdue - a.daysOverdue);
-
-  document.getElementById('po14-count').textContent = po14.length;
-
-  if (!po14.length) {
-    document.getElementById('po14-tbody').innerHTML =
-      '<tr><td colspan="10" class="empty">No POs 14+ days past due</td></tr>';
-    return;
-  }
-
-  function overdueBadge(d) {
-    if (d >= 30) return `<span class="badge badge-crit">${d}d overdue</span>`;
-    if (d >= 14) return `<span class="badge badge-high">${d}d overdue</span>`;
-    return `<span class="badge badge-watch">${d}d overdue</span>`;
-  }
-
-  renderTable('po14-tbody', po14.map(p => {
-    const outstanding = Math.max(0, p.ordered - p.received);
-    const feCell      = p.feQty > 0 ? `<strong>${p.feQty.toFixed(0)}</strong>` : (state.feoos.length ? '0' : '—');
-    return `<tr>
-      <td style="font-family:monospace;font-size:.73rem">${p.purchase_order_number}</td>
-      <td>${p.vendor}</td>
-      <td><span class="badge badge-blue">${p.warehouse_name}</span></td>
-      <td>${p.expected_receipt_date_date}</td>
-      <td>${overdueBadge(p.daysOverdue)}</td>
-      <td>${p.lines}</td>
-      <td>${p.ordered.toFixed(0)}</td>
-      <td>${p.received.toFixed(0)}</td>
-      <td><strong>${outstanding.toFixed(0)}</strong></td>
-      <td>${feCell}</td>
-    </tr>`;
-  }), 10, po14.map(p => ({
-    'PO Number':      p.purchase_order_number,
-    'Vendor':         p.vendor,
-    'Warehouse':      p.warehouse_name,
-    'Expected Date':  p.expected_receipt_date_date,
-    'Days Overdue':   p.daysOverdue,
-    'Lines':          p.lines,
-    'Ordered Qty':    p.ordered.toFixed(0),
-    'Received Qty':   p.received.toFixed(0),
-    'Outstanding':    Math.max(0, p.ordered - p.received).toFixed(0),
-    'FEOOS (14d)':    p.feQty > 0 ? p.feQty.toFixed(0) : '0',
-  })));
-}
-
-// ─── Coverage Gap table ───────────────────────────────────────────────────────
-function renderCoverageGap(rows, feIdx) {
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  const flagged = rows
-    .filter(r => {
-      if (!r.next_po_delivery_date) return false;
-      const estDoc      = num(r.est_days_of_cover);
-      const daysUntilPo = Math.ceil((new Date(r.next_po_delivery_date) - today) / 86400000);
-      return daysUntilPo > 0 && estDoc < daysUntilPo && num(r.consumption_rate) > 0;
-    })
-    .map(r => {
-      const daysUntilPo = Math.ceil((new Date(r.next_po_delivery_date) - today) / 86400000);
-      const estDoc      = num(r.est_days_of_cover);
-      return { ...r, estDoc, daysUntilPo, gap: daysUntilPo - estDoc };
-    })
-    .sort((a, b) => num(b.consumption_rate) - num(a.consumption_rate));
-
-  document.getElementById('gap-count').textContent = flagged.length;
-  const tbody = 'gap-tbody';
-
-  if (!flagged.length) {
-    document.getElementById(tbody).innerHTML =
-      '<tr><td colspan="11" class="empty">No items at risk — all on-hand stock covers until next PO</td></tr>';
-    return;
-  }
-
-  function gapBadge(days) {
-    const d = Math.round(days);
-    if (d >= 7)  return `<span class="badge badge-crit">${d}d gap</span>`;
-    if (d >= 3)  return `<span class="badge badge-high">${d}d gap</span>`;
-    return `<span class="badge badge-watch">${d}d gap</span>`;
-  }
-
-  renderTable(tbody, flagged.map(r => {
-    const fe     = feooLookup(feIdx, r.warehouse_name, r.item_name);
-    const feCell = fe ? `<strong>${fe.qty.toFixed(0)}</strong>` : (state.feoos.length ? '0' : '—');
-    return `<tr>
-      <td class="trunc" title="${r.item_name}"><strong>${r.item_name}</strong></td>
-      <td>${topCat(r.item_class)}</td>
-      <td>${r.vendor_name}</td>
-      <td><span class="badge badge-blue">${r.warehouse_name}</span></td>
-      <td>${docBadge(r.estDoc)}</td>
-      <td>${r.next_po_delivery_date}</td>
-      <td>${r.daysUntilPo}d</td>
-      <td>${gapBadge(r.gap)}</td>
-      <td>${docBadge(r.net_days_of_cover)}</td>
-      <td>${feCell}</td>
-      <td>${num(r.consumption_rate).toFixed(2)}/day</td>
-    </tr>`;
-  }), 11, flagged.map(r => {
-    const fe = feooLookup(feIdx, r.warehouse_name, r.item_name);
-    return {
-      'Item UUID':           r.item_uuid || '',
-      'Item':                r.item_name,
-      'Category':            topCat(r.item_class),
-      'Vendor':              r.vendor_name,
-      'Warehouse':           r.warehouse_name,
-      'On-Hand DoC':         r.estDoc.toFixed(0),
-      'Next PO Delivery':    r.next_po_delivery_date,
-      'Days Until PO':       r.daysUntilPo,
-      'Gap (OOS Days)':      Math.round(r.gap),
-      'Net DoC (Pipeline)':  r.net_days_of_cover,
-      'FEOOS (14d)':         fe ? fe.qty.toFixed(0) : '0',
-      'Consumption/Day':     num(r.consumption_rate).toFixed(2),
-    };
-  }));
-}
-
-// ─── Overpurchased POs (>100 days of cover) ───────────────────────────────────
-function renderOverpurchased(feIdx) {
-  if (!state.pos.length) {
-    document.getElementById('overpurchased-tbody').innerHTML =
-      '<tr><td colspan="9" class="empty">No PO data loaded</td></tr>';
-    document.getElementById('overpurchased-count').textContent = '';
-    return;
-  }
-
-  // Build inventory lookup: warehouse::normName -> row (for consumption_rate)
-  const invIdx = {};
-  filtered().forEach(r => {
-    const key = (r.warehouse_name||'') + '::' + normName(r.item_name);
-    invIdx[key] = r;
-  });
-
-  // Open PO lines: not received, not closed
-  const openPos = posFiltered().filter(p => {
-    if (p.shipment_received_utc_date && p.shipment_received_utc_date.trim()) return false;
-    const ordered   = num(p.purchase_order_units);
-    const received  = num(p.quantity_received_pu);
-    return ordered > 0 && received < ordered;
-  });
-
-  const flagged = openPos.flatMap(p => {
-    const key         = (p.warehouse_name||'') + '::' + normName(p.item_name);
-    const inv         = invIdx[key];
-    const consumption = inv ? num(inv.consumption_rate) : 0;
-    if (consumption <= 0) return [];                       // can't calculate DoC without rate
-    const poQty       = num(p.purchase_order_units);
-    const poDaysOfCover = poQty / consumption;
-    if (poDaysOfCover <= 100) return [];
-    return [{ ...p, consumption, poDaysOfCover }];
-  }).sort((a, b) => b.poDaysOfCover - a.poDaysOfCover);
-
-  document.getElementById('overpurchased-count').textContent = flagged.length;
-
-  if (!flagged.length) {
-    document.getElementById('overpurchased-tbody').innerHTML =
-      '<tr><td colspan="9" class="empty">No open PO lines exceeding 100 days of coverage</td></tr>';
-    return;
-  }
-
-  function docCoverBadge(d) {
-    const v = Math.round(d);
-    if (v > 365) return `<span class="badge badge-crit">${v}d</span>`;
-    if (v > 200) return `<span class="badge badge-high">${v}d</span>`;
-    if (v > 100) return `<span class="badge badge-watch">${v}d</span>`;
-    return `<span class="badge badge-green">${v}d</span>`;
-  }
-
-  renderTable('overpurchased-tbody', flagged.map(p => {
-    const fe     = feooLookup(feIdx, p.warehouse_name, p.item_name);
-    const feCell = fe ? `<strong>${fe.qty.toFixed(0)}</strong>` : (state.feoos.length ? '0' : '—');
-    return `<tr>
-      <td class="trunc" title="${p.item_name}"><strong>${p.item_name}</strong></td>
-      <td><span class="badge badge-blue">${p.warehouse_name}</span></td>
-      <td>${vendorName(p.full_vendor_name)}</td>
-      <td style="font-family:monospace;font-size:.73rem">${p.purchase_order_number}</td>
-      <td>${p.expected_receipt_date_date || '—'}</td>
-      <td>${num(p.purchase_order_units).toFixed(0)} ${p.purchase_unit_name||''}</td>
-      <td>${p.consumption.toFixed(2)}/day</td>
-      <td>${docCoverBadge(p.poDaysOfCover)}</td>
-      <td>${feCell}</td>
-    </tr>`;
-  }), 9, flagged.map(p => {
-    const fe = feooLookup(feIdx, p.warehouse_name, p.item_name);
-    return {
-      'Item UUID':         p.item_uuid || '',
-      'Item':              p.item_name,
-      'Warehouse':         p.warehouse_name,
-      'Vendor':            vendorName(p.full_vendor_name),
-      'PO Number':         p.purchase_order_number,
-      'Expected Date':     p.expected_receipt_date_date || '',
-      'PO Qty':            num(p.purchase_order_units).toFixed(0),
-      'Consumption/Day':   p.consumption.toFixed(2),
-      'PO Days of Cover':  Math.round(p.poDaysOfCover),
-      'FEOOS (14d)':       fe ? fe.qty.toFixed(0) : '0',
-    };
-  }));
-}
-
-// ─── Expiration Risk table ────────────────────────────────────────────────────
-function renderExpirationRisk(rows) {
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // Build a cross-warehouse index: normName(item) -> [rows]
-  // Use the full unfiltered warehouse set so transfer candidates aren't artificially removed
-  const allRows = state.rows.filter(r => r.warehouse_name && whPattern.test(r.warehouse_name.trim()) && !WH_EXCLUDE.has(r.warehouse_name));
-  const itemIdx = {};
-  allRows.forEach(r => {
-    const key = normName(r.item_name);
-    (itemIdx[key] = itemIdx[key] || []).push(r);
-  });
-
-  // Exclude known cold-storage states; blank/uncategorised = include
-  // (some room-temp items may not have refrigeration_state populated)
-  const COLD = /refrigerat|frozen|chilled|cold/i;
-  const atRisk = rows.filter(r => {
-    const ref = (r.refrigeration_state || '').trim();
-    if (ref && COLD.test(ref)) return false;
-    return num(r.expired) > 0;  // unsellable blank is fine — treated as 0
-  });
-
-  const flagged = atRisk.map(r => {
-    const expired        = num(r.expired);
-    const unsellable     = num(r.unsellable);
-    const willExpire     = Math.max(0, expired - unsellable);  // at-risk, not yet unsellable
-    const minExpQty      = num(r.min_expiration_quantity);
-    const minShelfLife   = num(r.minimum_deliverable_shelf_life); // days customer requires
-
-    // Unsellable after = min_expiration_date - minimum_deliverable_shelf_life
-    let unsellableDate = null, daysOfSellability = null;
-    if (r.min_expiration_date && r.min_expiration_date.trim()) {
-      const expDate = new Date(r.min_expiration_date);
-      if (!isNaN(expDate)) {
-        unsellableDate = new Date(expDate);
-        if (minShelfLife > 0) unsellableDate.setDate(unsellableDate.getDate() - minShelfLife);
-        daysOfSellability = Math.ceil((unsellableDate - today) / 86400000);
-      }
-    }
-
-    // Best transfer warehouse: same item, different wh, has consumption rate
-    // Rank by lowest resulting DoC after receiving the transfer (current + added)
-    let transferWh = null, transferCurDoc = null, transferDocAdded = null;
-    if (willExpire > 0) {
-      const candidates = (itemIdx[normName(r.item_name)] || [])
-        .filter(c =>
-          c.warehouse_name !== r.warehouse_name &&
-          c.warehouse_name !== 'MDT1-VA' &&
-          num(c.consumption_rate) > 0
-        )
-        .sort((a, b) => {
-          const aResult = num(a.net_days_of_cover) + (willExpire / num(a.consumption_rate));
-          const bResult = num(b.net_days_of_cover) + (willExpire / num(b.consumption_rate));
-          return aResult - bResult;
-        });
-
-      if (candidates.length) {
-        const best        = candidates[0];
-        const consumption = num(best.consumption_rate);
-        transferWh        = best.warehouse_name;
-        transferCurDoc    = num(best.net_days_of_cover);
-        const rawAdded    = willExpire / consumption;
-        // Cap at days of sellability if known
-        transferDocAdded  = (daysOfSellability != null && daysOfSellability > 0)
-          ? Math.min(rawAdded, daysOfSellability)
-          : rawAdded;
-      }
-    }
-
-    return { ...r, expired, unsellable, willExpire, minExpQty, minShelfLife, unsellableDate, daysOfSellability, transferWh, transferCurDoc, transferDocAdded };
-  }).filter(r => r.willExpire >= 1)
-    .sort((a, b) => b.expired - a.expired);
-
-  document.getElementById('expiry-count').textContent = flagged.length;
-
-  if (!flagged.length) {
-    document.getElementById('expiry-tbody').innerHTML =
-      '<tr><td colspan="7" class="empty">No expiration risk items</td></tr>';
-    return;
-  }
-
-  function sellBadge(d) {
-    if (d == null)  return `<span class="badge badge-gray">—</span>`;
-    if (d <= 0)     return `<span class="badge badge-crit">Unsellable</span>`;
-    if (d <= 7)     return `<span class="badge badge-crit">${d}d</span>`;
-    if (d <= 30)    return `<span class="badge badge-high">${d}d</span>`;
-    if (d <= 60)    return `<span class="badge badge-watch">${d}d</span>`;
-    return `<span class="badge badge-green">${d}d</span>`;
-  }
-
-  function fmtDate(d) {
-    if (!d) return '—';
-    return d.toISOString().slice(0, 10);
-  }
-
-  renderTable('expiry-tbody', flagged.map(r => {
-    const willExpireCell = r.willExpire > 0
-      ? `<span class="badge badge-crit">${r.willExpire.toFixed(0)}</span>`
-      : `<span class="badge badge-gray">0</span>`;
-
-    let transferCell = '—', curDocCell = '—', addedDocCell = '—';
-    if (r.transferWh) {
-      transferCell  = `<span class="badge badge-blue">${r.transferWh}</span>`;
-      curDocCell    = r.transferCurDoc != null ? `${r.transferCurDoc.toFixed(0)}d` : '—';
-      addedDocCell  = r.transferDocAdded != null ? `<span class="badge badge-green">+${r.transferDocAdded.toFixed(0)}d</span>` : '—';
-    } else if (r.daysOfSellability != null && r.daysOfSellability <= 0) {
-      addedDocCell = `<span class="badge badge-crit">Unsellable</span>`;
-    }
-
-    return `<tr>
-      <td class="trunc" title="${r.item_name}"><strong>${r.item_name}</strong></td>
-      <td><span class="badge badge-blue">${r.warehouse_name}</span></td>
-      <td>${r.vendor_name || '—'}</td>
-      <td>${willExpireCell}</td>
-      <td>${transferCell}</td>
-      <td>${curDocCell}</td>
-      <td>${addedDocCell}</td>
-    </tr>`;
-  }), 7, flagged.map(r => ({
-    'Item UUID':              r.item_uuid || '',
-    'Item':                   r.item_name,
-    'Warehouse':              r.warehouse_name,
-    'Vendor':                 r.vendor_name || '',
-    'Expiring Qty':           r.willExpire.toFixed(0),
-    'Best Transfer WH':       r.transferWh || '',
-    'Transfer Net DoC':       r.transferCurDoc != null ? r.transferCurDoc.toFixed(0) : '',
-    'DoC Added by Transfer':  r.transferDocAdded != null ? r.transferDocAdded.toFixed(0) : '',
-  })));
-}
-
-// ─── Warehouse groups ─────────────────────────────────────────────────────────
-const WH_GROUPS = [
-  { name: 'Christian Whitney', codes: ['DCA', 'MDT', 'SDF'] },
-  { name: 'Mikey Shutta',      codes: ['EWR', 'PWM'] },
-  { name: 'Jason Eidom',       codes: ['CLT', 'ATL', 'MIA'] },
-  { name: 'Condra Garner',     codes: ['DFW', 'AUS', 'HOU'] },
-  { name: 'John Hoban',        codes: ['DEN', 'LAX', 'BLI'] },
-  { name: 'Mitzy Mojaica',     codes: ['PDX', 'SEA', 'SMF'] },
-  { name: 'Tim Hibbs',         codes: ['BNA'] },
-];
-
-function whGroup(whName) {
-  return WH_GROUPS.find(g => g.codes.some(c => whName.startsWith(c))) || null;
-}
-
-// ─── Warehouse multi-select ───────────────────────────────────────────────────
-function populateWhFilter(rows) {
-  const whPattern = /^[A-Z0-9]{2,8}(-[A-Z0-9]+)?$/;
-  const whs = [...new Set(rows.map(r=>r.warehouse_name).filter(w => w && whPattern.test(w.trim()) && !WH_EXCLUDE.has(w)))].sort();
-  const dropdown = document.getElementById('wh-dropdown');
-  dropdown.querySelectorAll('.wh-wh, .wh-group-hdr').forEach(el => el.remove());
-
-  // Bucket warehouses into groups
-  const grouped = {};
-  const ungrouped = [];
-  whs.forEach(w => {
-    const g = whGroup(w);
-    if (g) { (grouped[g.name] = grouped[g.name] || []).push(w); }
-    else    { ungrouped.push(w); }
-  });
-
-  // Render in group order
-  WH_GROUPS.forEach(g => {
-    const members = grouped[g.name];
-    if (!members?.length) return;
-
-    // Group header — clicking selects all in this group
-    const hdr = document.createElement('div');
-    hdr.className = 'wh-group-hdr wh-wh';
-    hdr.dataset.group = g.name;
-    hdr.innerHTML = `<span>${g.name}</span><span class="grp-hint">select all</span>`;
-    hdr.addEventListener('click', () => selectGroup(g.name));
-    dropdown.appendChild(hdr);
-
-    members.forEach(w => {
-      const lbl = document.createElement('label');
-      lbl.className = 'wh-option wh-wh';
-      lbl.dataset.group = g.name;
-      lbl.innerHTML = `<input type="checkbox" class="wh-cb" value="${w}" /> ${w}`;
-      lbl.querySelector('input').addEventListener('change', onWhChange);
-      dropdown.appendChild(lbl);
-    });
-  });
-
-  // Ungrouped at bottom
-  if (ungrouped.length) {
-    const hdr = document.createElement('div');
-    hdr.className = 'wh-group-hdr wh-wh';
-    hdr.innerHTML = `<span>Other</span>`;
-    dropdown.appendChild(hdr);
-    ungrouped.forEach(w => {
-      const lbl = document.createElement('label');
-      lbl.className = 'wh-option wh-wh';
-      lbl.innerHTML = `<input type="checkbox" class="wh-cb" value="${w}" /> ${w}`;
-      lbl.querySelector('input').addEventListener('change', onWhChange);
-      dropdown.appendChild(lbl);
-    });
-  }
-
-  state.warehouses = new Set();
-  updateWhBtn();
-}
-
-function selectGroup(groupName) {
-  const allCb = document.getElementById('wh-all');
-  allCb.checked = false;
-  // Uncheck all, then check just this group
-  document.querySelectorAll('.wh-cb').forEach(c => { c.checked = false; });
-  document.querySelectorAll(`label.wh-wh[data-group="${groupName}"] .wh-cb`).forEach(c => { c.checked = true; });
-  state.warehouses = new Set([...document.querySelectorAll('.wh-cb:checked')].map(c => c.value));
-  if (!state.warehouses.size) { allCb.checked = true; }
-  updateWhBtn();
-  render();
-}
-
-function onWhChange() {
-  const allCb = document.getElementById('wh-all');
-  const cbs   = [...document.querySelectorAll('.wh-cb')];
-  const checked = cbs.filter(c=>c.checked).map(c=>c.value);
-  if (this === allCb) {
-    cbs.forEach(c => { if (c !== allCb) c.checked = false; });
-    state.warehouses = new Set();
-  } else {
-    allCb.checked = false;
-    state.warehouses = new Set(checked.filter(v => v !== 'ALL'));
-    if (!state.warehouses.size) { allCb.checked = true; }
-  }
-  updateWhBtn();
-  render();
-}
-
-function updateWhBtn() {
-  const btn = document.getElementById('wh-btn');
-  const sel = [...state.warehouses];
-
-  // Check if selection exactly matches a group
-  if (sel.length > 1) {
-    const matchedGroup = WH_GROUPS.find(g => {
-      const groupWhs = [...document.querySelectorAll(`label.wh-wh[data-group="${g.name}"] .wh-cb`)].map(c=>c.value);
-      return groupWhs.length && groupWhs.length === sel.length && groupWhs.every(w => state.warehouses.has(w));
-    });
-    if (matchedGroup) {
-      btn.childNodes[0].textContent = matchedGroup.name + ' ';
-      return;
-    }
-  }
-
-  if (!sel.length)       btn.childNodes[0].textContent = 'All Warehouses ';
-  else if (sel.length === 1) btn.childNodes[0].textContent = sel[0] + ' ';
-  else                   btn.childNodes[0].textContent = `${sel[0]} +${sel.length - 1} `;
-}
-
-// Toggle dropdown open/close
-document.getElementById('wh-btn').addEventListener('click', e => {
-  e.stopPropagation();
-  document.getElementById('wh-btn').classList.toggle('open');
-  document.getElementById('wh-dropdown').classList.toggle('open');
-});
-
-// "All" checkbox
-document.getElementById('wh-all').addEventListener('change', onWhChange);
-
-// Close on outside click
-document.addEventListener('click', e => {
-  if (!document.getElementById('wh-filter').contains(e.target)) {
-    document.getElementById('wh-btn').classList.remove('open');
-    document.getElementById('wh-dropdown').classList.remove('open');
-  }
-});
-
-// ─── Render ───────────────────────────────────────────────────────────────────
-function render() {
-  const rows  = filtered();
-  const feoos = feooFiltered();
-  const feIdx = buildFeooIndex(feoos);
-
-  updateKPIs(rows, feoos);
-  renderFlags(rows, feoos);
-  buildFeooWhChart(feoos);
-  buildFeooItemsChart(feoos);
-  buildDocChart(rows);
-  renderPastDue(rows, feIdx);
-  renderOOS(rows, feIdx);
-  renderPo14(feIdx);
-  renderCoverageGap(rows, feIdx);
-  renderOverpurchased(feIdx);
-  renderExpirationRisk(rows);
-}
-
-
-// ─── Google Sheets sources ────────────────────────────────────────────────────
 const SOURCES = {
   inv:   'https://docs.google.com/spreadsheets/d/1sPEc5rBdRB9qaJijBh4z8DK4ZVo--5xmTGbPTZ5n2nQ/export?format=csv&gid=1794766977',
   feoos: 'https://docs.google.com/spreadsheets/d/1tNBL8WXowviHwF5ywOaYl0xkUQCnr9c56Idmfx7kf8Y/export?format=csv&gid=1294742534',
   pos:   'https://docs.google.com/spreadsheets/d/1x5T4i6WrO22iGJ2-0tX8N_hrOVC4NwRRCkoA5VWMmOo/export?format=csv&gid=796468827',
 };
 
-function setStatus(key, state, msg) {
-  const dot  = document.getElementById(`${key}-dot`);
-  const text = document.getElementById(`${key}-status`);
-  dot.className  = 'ds-dot' + (state==='ok' ? ' ok' : state==='err' ? ' err' : state==='loading' ? ' loading' : '');
-  text.textContent = msg;
+const WH_GROUPS = [
+  { name: 'Mikey Shutta',      codes: ['EWR', 'PWM'] },
+  { name: 'Christian Whitney', codes: ['MDT', 'SDF'] },
+  { name: 'Jason Eidom',       codes: ['CLT', 'ATL', 'MIA'] },
+  { name: 'Cameron Kay',       codes: ['DFW', 'AUS', 'HOU'] },
+  { name: 'John Hoban',        codes: ['DEN', 'LAX', 'BLI'] },
+  { name: 'Mitzy Mojaica',     codes: ['PDX', 'SEA', 'SMF'] },
+  { name: 'Tim Hibbs',         codes: ['BNA'] },
+  { name: 'Unassigned',        codes: ['BOS', 'DCA'] },
+];
+
+const WH_EXCLUDE = new Set(['MHT1', 'SFO1', 'MDT1-VA']);
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const pct = (n, d) => d > 0 ? (n / d * 100) : 0;
+const fmt1 = v => v.toFixed(1);
+const fmtPct = v => v.toFixed(1) + '%';
+const today = () => new Date().toISOString().slice(0, 10);
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (!lines.length) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').trim());
+  return lines.slice(1).map(line => {
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+      else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
+      else cur += c;
+    }
+    vals.push(cur);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (vals[i] || '').replace(/^"|"$/g, '').trim(); });
+    return obj;
+  });
 }
 
-async function fetchAll() {
-  const btn  = document.getElementById('refresh-btn');
-  const spin = document.getElementById('spin-icon');
+function whGroup(whName) {
+  return WH_GROUPS.find(g => g.codes.some(c => whName && whName.startsWith(c))) || null;
+}
+
+function grade(score) {
+  if (score >= 88) return 'A';
+  if (score >= 75) return 'B';
+  if (score >= 60) return 'C';
+  if (score >= 45) return 'D';
+  return 'F';
+}
+
+function composite(m) {
+  const inStockScore = m.inStockRate;
+  const feooScore    = Math.max(0, 100 - (m.velocity > 0 ? (m.feooQty / m.velocity) * 300 : 0));
+  const poScore      = Math.max(0, 100 - (m.skuCount > 0 ? (m.pastDuePOs / m.skuCount) * 400 : 0));
+  const coverScore   = Math.min(m.avgDoc / 30 * 100, 100);
+  return 0.40 * inStockScore + 0.25 * feooScore + 0.20 * poScore + 0.15 * coverScore;
+}
+
+function sizeWeight(m) {
+  return Math.sqrt(Math.max(m.skuCount * (m.velocity + 1), 1) / 500);
+}
+
+// ─── Snapshot store ───────────────────────────────────────────────────────────
+function loadSnaps() {
+  try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '{}'); } catch { return {}; }
+}
+function saveSnaps(snaps) {
+  // Prune to MAX_DAYS
+  const dates = Object.keys(snaps).sort();
+  if (dates.length > MAX_DAYS) dates.slice(0, dates.length - MAX_DAYS).forEach(d => delete snaps[d]);
+  localStorage.setItem(SNAP_KEY, JSON.stringify(snaps));
+}
+function snapDayCount() { return Object.keys(loadSnaps()).length; }
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const state = { inv: [], feoos: [], pos: [] };
+let histChart = null;
+
+// ─── Data load ───────────────────────────────────────────────────────────────
+function setDot(key, status, text) {
+  document.getElementById('dot-' + key).className = 'ds-dot ' + status;
+  document.getElementById('txt-' + key).textContent = text;
+}
+
+async function loadAndProcess() {
+  const btn = document.getElementById('refresh-btn');
+  const spin = document.getElementById('spin');
   btn.disabled = true;
   spin.classList.add('active');
+  document.getElementById('loading-overlay').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('error-banner').style.display = 'none';
 
-  await Promise.all([
-    fetchSource('inv'),
-    fetchSource('feoos'),
-    fetchSource('pos'),
-  ]);
+  const keys = ['inv', 'feoos', 'pos'];
+  const labels = { inv: 'Inventory', feoos: 'FEOOS', pos: 'POs' };
+
+  keys.forEach(k => setDot(k, 'loading', 'Loading…'));
+
+  const results = await Promise.allSettled(keys.map(async k => {
+    const resp = await fetch(SOURCES[k]);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const text = await resp.text();
+    const rows = parseCSV(text);
+    state[k] = rows;
+    setDot(k, 'ok', rows.length.toLocaleString() + ' rows');
+    return rows;
+  }));
+
+  let hasError = false;
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      setDot(keys[i], 'err', 'Error');
+      hasError = true;
+    }
+  });
+
+  if (hasError) {
+    document.getElementById('error-banner').style.display = 'block';
+    document.getElementById('error-banner').textContent = 'One or more data sources failed to load. Check your network and try again.';
+  }
+
+  if (state.inv.length && state.feoos.length && state.pos.length) {
+    process();
+  } else {
+    document.getElementById('loading-overlay').innerHTML = '<p style="color:#f56565">Could not load required data.</p>';
+  }
 
   btn.disabled = false;
   spin.classList.remove('active');
-  render();
 }
 
-async function fetchSource(key) {
-  setStatus(key, 'loading', 'Loading…');
-  try {
-    const res = await fetch(SOURCES[key]);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    if (key === 'inv') {
-      state.rows = rows;
-      populateWhFilter(state.rows);
-      const d = rows[0]?.order_date || new Date().toISOString().slice(0,10);
-      document.getElementById('last-updated').textContent = 'Inventory as of: ' + d;
-      setStatus('inv', 'ok', `${rows.length.toLocaleString()} rows · ${d}`);
-    } else if (key === 'feoos') {
-      state.feoos = rows;
-      setStatus('feoos', 'ok', `${rows.length.toLocaleString()} events loaded`);
-    } else {
-      state.pos = rows;
-      const pastDueCount = getPastDuePOs(rows).length;
-      setStatus('pos', 'ok', `${rows.length.toLocaleString()} PO lines · ${pastDueCount} past due`);
-    }
-  } catch (e) {
-    setStatus(key, 'err', 'Failed — check sharing settings');
-    console.error(key, e);
+// ─── Process & score ──────────────────────────────────────────────────────────
+function process() {
+  const todayStr = today();
+
+  // ── Build per-warehouse metrics from inventory
+  const whMap = {};
+  state.inv.forEach(r => {
+    const wh = (r.warehouse_name || '').trim();
+    if (!wh || WH_EXCLUDE.has(wh) || !/^[A-Z0-9]{2,8}(-[A-Z0-9]+)?$/.test(wh)) return;
+    if (!whMap[wh]) whMap[wh] = { wh, skus: new Set(), vendors: new Set(), inStockCount: 0, oosCount: 0, totalDoc: 0, docCount: 0, velocity: 0 };
+    const m = whMap[wh];
+    const itemId = (r.item_uuid || r.item_name || '').trim();
+    if (itemId) m.skus.add(itemId);
+    const vendor = (r.full_vendor_name || r.vendor_name || '').trim();
+    if (vendor) m.vendors.add(vendor);
+    const onHand = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
+    const cons   = num(r.consumption_rate || 0);
+    if (onHand > 0) m.inStockCount++;
+    else m.oosCount++;
+    const doc = num(r.net_days_of_cover || r.days_of_cover || 0);
+    if (doc > 0) { m.totalDoc += doc; m.docCount++; }
+    m.velocity += cons;
+  });
+
+  // ── FEOOS demand by warehouse
+  const feooByWh = {};
+  state.feoos.forEach(r => {
+    const wh  = (r.warehouse_name || '').trim();
+    const qty = num(r.forecasted_end_of_stock_units ?? r.feoos_qty ?? r.qty ?? 0);
+    if (!wh || WH_EXCLUDE.has(wh)) return;
+    feooByWh[wh] = (feooByWh[wh] || 0) + qty;
+  });
+
+  // ── Past-due POs by warehouse
+  const pastDueByWh = {};
+  const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
+  state.pos.forEach(p => {
+    const wh  = (p.warehouse_name || '').trim();
+    const exp = p.expected_receipt_date_date || p.expected_receipt_date || '';
+    if (!wh || !exp || WH_EXCLUDE.has(wh)) return;
+    if (p.shipment_received_utc_date && p.shipment_received_utc_date.trim()) return;
+    const ordered   = num(p.purchase_order_units);
+    const received  = num(p.quantity_received_pu);
+    if (ordered > 0 && received >= ordered) return;
+    const expDate = new Date(exp); expDate.setHours(0, 0, 0, 0);
+    if (expDate < todayDate) pastDueByWh[wh] = (pastDueByWh[wh] || 0) + 1;
+  });
+
+  // ── Assemble market objects
+  const markets = {};
+  Object.entries(whMap).forEach(([wh, m]) => {
+    const total       = m.inStockCount + m.oosCount;
+    const inStockRate = total > 0 ? pct(m.inStockCount, total) : 0;
+    const feooQty     = feooByWh[wh] || 0;
+    const pastDuePOs  = pastDueByWh[wh] || 0;
+    const avgDoc      = m.docCount > 0 ? m.totalDoc / m.docCount : 0;
+    const skuCount    = m.skus.size;
+    const vendorCount = m.vendors.size;
+    const velocity    = m.velocity;
+
+    const met = { wh, inStockRate, oosCount: m.oosCount, feooQty, pastDuePOs, avgDoc, skuCount, vendorCount, velocity };
+    met.score     = composite(met);
+    met.grade     = grade(met.score);
+    met.sizeWt    = sizeWeight(met);
+    met.rankScore = met.score * met.sizeWt;
+    markets[wh]   = met;
+  });
+
+  // ── Snapshot today
+  const snaps = loadSnaps();
+  snaps[todayStr] = Object.fromEntries(
+    Object.entries(markets).map(([wh, m]) => [wh, {
+      inStockRate: m.inStockRate,
+      oosCount:    m.oosCount,
+      feooQty:     m.feooQty,
+      pastDuePOs:  m.pastDuePOs,
+      avgDoc:      m.avgDoc,
+      skuCount:    m.skuCount,
+      vendorCount: m.vendorCount,
+      velocity:    m.velocity,
+      score:       m.score,
+      grade:       m.grade,
+    }])
+  );
+  saveSnaps(snaps);
+
+  // Update header
+  document.getElementById('last-snapshot').textContent = 'Snapshot: ' + todayStr;
+  const dayCount = Object.keys(snaps).length;
+  document.getElementById('snap-count-bar').textContent = dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of history stored';
+
+  // ── Render
+  renderCards(markets, snaps);
+  renderLeaderboard(markets, snaps, dayCount);
+  renderHistoryOptions(markets);
+
+  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+}
+
+// ─── Cards ────────────────────────────────────────────────────────────────────
+function renderCards(markets, snaps) {
+  const section = document.getElementById('cards-section');
+  section.innerHTML = '<div class="section-title">Market Scorecard — Today</div>';
+
+  // Get yesterday's data for deltas
+  const dates = Object.keys(snaps).sort();
+  const todayStr = today();
+  const prevDate = dates.filter(d => d < todayStr).slice(-1)[0];
+  const prevSnap = prevDate ? snaps[prevDate] : null;
+
+  WH_GROUPS.forEach(grp => {
+    // Find warehouses that belong to this group and have data
+    const whList = Object.keys(markets).filter(wh => grp.codes.some(c => wh.startsWith(c))).sort();
+    if (!whList.length) return;
+
+    // Compute group average grade
+    const groupScores = whList.map(wh => markets[wh].score);
+    const avgScore = groupScores.reduce((a, b) => a + b, 0) / groupScores.length;
+    const grpGrade = grade(avgScore);
+
+    const grpDiv = document.createElement('div');
+    grpDiv.className = 'person-group';
+    grpDiv.innerHTML = `
+      <div class="person-header">
+        <span class="grade grade-${grpGrade}" title="Group avg score ${fmt1(avgScore)}">${grpGrade}</span>
+        <div>
+          <div class="person-name">${grp.name}</div>
+          <div class="person-avg-grade">Avg score ${fmt1(avgScore)} · ${whList.length} market${whList.length !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div class="cards-grid" id="grid-${grp.name.replace(/\s+/g,'-')}"></div>
+    `;
+    section.appendChild(grpDiv);
+
+    const grid = grpDiv.querySelector('.cards-grid');
+
+    whList.forEach(wh => {
+      const m  = markets[wh];
+      const prev = prevSnap ? prevSnap[wh] : null;
+
+      const deltaRate = prev ? (m.inStockRate - prev.inStockRate) : null;
+      const deltaOOS  = prev ? (m.oosCount    - prev.oosCount)    : null;
+      const deltaDoc  = prev ? (m.avgDoc       - prev.avgDoc)      : null;
+
+      const tags = buildTags(m);
+
+      const card = document.createElement('div');
+      card.className = 'market-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="grade grade-${m.grade}">${m.grade}</span>
+          <div style="flex:1">
+            <div class="card-wh">${wh}</div>
+            <div class="card-sub">Score: ${fmt1(m.score)} · ${m.skuCount} SKUs · ${m.vendorCount} vendors</div>
+          </div>
+        </div>
+        <div class="card-score-bar"><div class="card-score-fill fill-${m.grade}" style="width:${Math.min(m.score,100).toFixed(0)}%"></div></div>
+        <div class="card-metrics">
+          <div class="metric">
+            <div class="metric-label">In-Stock Rate</div>
+            <div class="metric-value">${fmtPct(m.inStockRate)}</div>
+            ${deltaRate !== null ? `<div class="metric-delta ${deltaRate > 0.05 ? 'delta-up' : deltaRate < -0.05 ? 'delta-dn' : 'delta-flat'}">${deltaRate >= 0 ? '+' : ''}${fmt1(deltaRate)}pp vs. yesterday</div>` : ''}
+          </div>
+          <div class="metric">
+            <div class="metric-label">OOS Items</div>
+            <div class="metric-value">${m.oosCount.toLocaleString()}</div>
+            ${deltaOOS !== null ? `<div class="metric-delta ${deltaOOS < 0 ? 'delta-up' : deltaOOS > 0 ? 'delta-dn' : 'delta-flat'}">${deltaOOS >= 0 ? '+' : ''}${deltaOOS} vs. yesterday</div>` : ''}
+          </div>
+          <div class="metric">
+            <div class="metric-label">FEOOS Pressure</div>
+            <div class="metric-value">${m.feooQty > 0 ? m.feooQty.toLocaleString() : '—'}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Avg Days of Cover</div>
+            <div class="metric-value">${fmt1(m.avgDoc)}d</div>
+            ${deltaDoc !== null ? `<div class="metric-delta ${deltaDoc > 0 ? 'delta-up' : deltaDoc < 0 ? 'delta-dn' : 'delta-flat'}">${deltaDoc >= 0 ? '+' : ''}${fmt1(deltaDoc)}d vs. yesterday</div>` : ''}
+          </div>
+          <div class="metric">
+            <div class="metric-label">Past-Due POs</div>
+            <div class="metric-value">${m.pastDuePOs > 0 ? m.pastDuePOs : '—'}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Daily Velocity</div>
+            <div class="metric-value">${m.velocity > 0 ? fmt1(m.velocity) : '—'}</div>
+          </div>
+        </div>
+        ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('')}</div>` : ''}
+      `;
+      grid.appendChild(card);
+    });
+  });
+}
+
+function buildTags(m) {
+  const tags = [];
+  if (m.inStockRate < 85)       tags.push({ type: 'alert', label: '🔴 Low In-Stock' });
+  else if (m.inStockRate < 92)  tags.push({ type: 'warn',  label: '🟡 In-Stock Watch' });
+  else                           tags.push({ type: 'ok',   label: '✅ In-Stock OK' });
+
+  if (m.feooQty > 100)           tags.push({ type: 'alert', label: '⚠️ High FEOOS' });
+  else if (m.feooQty > 30)       tags.push({ type: 'warn',  label: '⚡ FEOOS Pressure' });
+
+  if (m.pastDuePOs > 5)          tags.push({ type: 'alert', label: '🚨 POs Past Due' });
+  else if (m.pastDuePOs > 0)     tags.push({ type: 'warn',  label: `📦 ${m.pastDuePOs} Past-Due PO${m.pastDuePOs > 1 ? 's' : ''}` });
+
+  if (m.avgDoc < 14)             tags.push({ type: 'alert', label: '📉 Low Coverage' });
+  else if (m.avgDoc < 21)        tags.push({ type: 'warn',  label: '📉 Coverage Watch' });
+
+  return tags;
+}
+
+// ─── Leaderboard ─────────────────────────────────────────────────────────────
+function renderLeaderboard(markets, snaps, dayCount) {
+  const todayStr = today();
+  const dates    = Object.keys(snaps).sort();
+
+  document.getElementById('lb-snap-info').textContent =
+    dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of data stored. ' +
+    (dayCount < MIN_COMPARE ? `Cross-market comparisons unlock at ${MIN_COMPARE} days.` : 'Full comparative ranking active.');
+
+  if (dayCount >= MIN_COMPARE) {
+    document.getElementById('leaderboard-section').style.display = 'block';
+    document.getElementById('lb-lock').textContent = '';
+  } else {
+    document.getElementById('leaderboard-section').style.display = 'block'; // Show section with partial info
+    document.getElementById('lb-lock').textContent = `(unlocks in ${MIN_COMPARE - dayCount} more day${MIN_COMPARE - dayCount !== 1 ? 's' : ''})`;
   }
+
+  const d7  = dates.filter(d => d < todayStr).slice(-7)[0];
+  const d14 = dates.filter(d => d < todayStr).slice(-14)[0];
+
+  // Rank markets
+  const ranked = Object.values(markets).sort((a, b) => b.rankScore - a.rankScore);
+
+  const tbody = document.getElementById('lb-tbody');
+  tbody.innerHTML = '';
+
+  ranked.forEach((m, idx) => {
+    const rank = idx + 1;
+
+    // Trends
+    const snap7  = d7  ? snaps[d7][m.wh]  : null;
+    const snap14 = d14 ? snaps[d14][m.wh] : null;
+
+    const trend7  = snap7  ? (m.score - snap7.score)  : null;
+    const trend14 = snap14 ? (m.score - snap14.score) : null;
+
+    const trendChip = (t) => {
+      if (t === null) return '<span class="trend-chip trend-flat">—</span>';
+      if (t > 1)  return `<span class="trend-chip trend-up">▲ ${fmt1(t)}</span>`;
+      if (t < -1) return `<span class="trend-chip trend-dn">▼ ${fmt1(Math.abs(t))}</span>`;
+      return '<span class="trend-chip trend-flat">→ flat</span>';
+    };
+
+    const grp = whGroup(m.wh);
+
+    const tr = document.createElement('tr');
+    tr.className = rank <= 3 ? `rank-${rank}` : '';
+    tr.innerHTML = `
+      <td><span class="rank-num">${rank}</span></td>
+      <td><strong>${m.wh}</strong></td>
+      <td style="font-size:.75rem;color:#718096">${grp ? grp.name : '—'}</td>
+      <td><span class="grade grade-${m.grade}" style="width:28px;height:28px;font-size:.9rem">${m.grade}</span></td>
+      <td><strong>${fmt1(m.score)}</strong></td>
+      <td>${fmtPct(m.inStockRate)}</td>
+      <td>${m.oosCount}</td>
+      <td>${m.feooQty > 0 ? m.feooQty.toLocaleString() : '—'}</td>
+      <td>${fmt1(m.avgDoc)}d</td>
+      <td>${trendChip(trend7)}</td>
+      <td>${trendChip(trend14)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-// ─── Manual override uploads ──────────────────────────────────────────────────
-document.getElementById('manual-toggle').addEventListener('click', () => {
-  document.getElementById('manual-upload').classList.toggle('open');
-});
+// ─── History chart ────────────────────────────────────────────────────────────
+function renderHistoryOptions(markets) {
+  const snaps = loadSnaps();
+  if (Object.keys(snaps).length < 2) return;
 
-document.getElementById('inv-file').addEventListener('change', e => {
-  const f=e.target.files[0]; if(!f) return;
-  f.text().then(t => {
-    state.rows = parseCSV(t);
-    populateWhFilter(state.rows);
-    const d = state.rows[0]?.order_date || new Date().toISOString().slice(0,10);
-    document.getElementById('last-updated').textContent = 'Inventory as of: '+d;
-    setStatus('inv', 'ok', `${state.rows.length.toLocaleString()} rows (manual)`);
-    render();
+  const sel = document.getElementById('history-wh');
+  sel.innerHTML = '<option value="">— Select Market —</option>';
+  Object.keys(markets).sort().forEach(wh => {
+    const opt = document.createElement('option');
+    opt.value = wh; opt.textContent = wh;
+    sel.appendChild(opt);
   });
-});
+  document.getElementById('history-section').style.display = 'block';
+}
 
-document.getElementById('feoos-file').addEventListener('change', e => {
-  const f=e.target.files[0]; if(!f) return;
-  f.text().then(t => {
-    state.feoos = parseCSV(t);
-    setStatus('feoos', 'ok', `${state.feoos.length.toLocaleString()} events (manual)`);
-    render();
+function renderHistory() {
+  const wh = document.getElementById('history-wh').value;
+  if (!wh) return;
+
+  const snaps = loadSnaps();
+  const dates = Object.keys(snaps).sort();
+  const labels = dates;
+  const values = dates.map(d => snaps[d][wh] ? parseFloat(snaps[d][wh].inStockRate.toFixed(2)) : null);
+
+  const ctx = document.getElementById('historyChart').getContext('2d');
+  if (histChart) histChart.destroy();
+
+  histChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: wh + ' In-Stock Rate (%)',
+        data: values,
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102,126,234,.1)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#667eea',
+        fill: true,
+        tension: .3,
+        spanGaps: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+        y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: v => v + '%' }, grid: { color: '#f0f2f5' } }
+      }
+    }
   });
-});
+}
 
-document.getElementById('pos-file').addEventListener('change', e => {
-  const f=e.target.files[0]; if(!f) return;
-  f.text().then(t => {
-    state.pos = parseCSV(t);
-    const pastDueCount = getPastDuePOs(state.pos).length;
-    setStatus('pos', 'ok', `${state.pos.length.toLocaleString()} PO lines · ${pastDueCount} past due (manual)`);
-    render();
-  });
-});
-
-// ─── Init — auto-fetch on load ────────────────────────────────────────────────
-fetchAll();
+// ─── Init ─────────────────────────────────────────────────────────────────────
+loadAndProcess();
 </script>
 </body>
 </html>
