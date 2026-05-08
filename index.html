@@ -11,6 +11,7 @@
     /* ── Header ── */
     header { background: #1a1a2e; color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: .3px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
     .header-meta { font-size: .73rem; color: #8892a4; }
     .refresh-btn { padding: 6px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .refresh-btn:hover { background: #5a6fd6; }
@@ -31,6 +32,25 @@
     .ds-text { color: #718096; }
     .status-right { margin-left: auto; font-size: .7rem; color: #a0aec0; }
 
+    /* ── Portfolio KPI strip ── */
+    .portfolio-strip { background: #1a1a2e; padding: 14px 28px; display: flex; gap: 0; flex-wrap: wrap; border-bottom: 2px solid #667eea; }
+    .pf-kpi { flex: 1; min-width: 120px; padding: 0 20px; border-right: 1px solid #2d3748; }
+    .pf-kpi:first-child { padding-left: 0; }
+    .pf-kpi:last-child { border-right: none; }
+    .pf-kpi-label { font-size: .63rem; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 2px; }
+    .pf-kpi-value { font-size: 1.4rem; font-weight: 800; color: #fff; line-height: 1.1; }
+    .pf-kpi-sub { font-size: .65rem; color: #8892a4; margin-top: 1px; }
+    .pf-grade-badge { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; font-weight: 900; font-size: 1.4rem; }
+
+    /* ── Needs Attention ── */
+    .attention-strip { background: #fff8f0; border-bottom: 1px solid #fed7aa; padding: 12px 28px; display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+    .attention-title { font-size: .72rem; font-weight: 800; color: #c05621; text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: 5px; white-space: nowrap; padding-right: 10px; border-right: 1px solid #fbd38d; }
+    .attn-item { display: flex; flex-direction: column; gap: 1px; padding: 0 12px; border-right: 1px solid #fbd38d; }
+    .attn-item:last-child { border-right: none; }
+    .attn-label { font-size: .62rem; color: #c05621; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+    .attn-value { font-size: .82rem; font-weight: 800; color: #7b341e; }
+    .attn-sub { font-size: .65rem; color: #c05621; }
+
     /* ── Layout ── */
     .page { padding: 20px 28px; max-width: 1600px; margin: 0 auto; }
     .section-title { font-size: .8rem; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: .8px; margin: 0 0 12px; }
@@ -44,6 +64,11 @@
     .grade-D { background: #fed7aa; color: #7b341e; }
     .grade-F { background: #fed7d7; color: #742a2a; }
 
+    /* ── Rank badge ── */
+    .rank-badge { font-size: .62rem; font-weight: 700; background: #edf2ff; color: #4c51bf; padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+    .rank-badge.rank-top { background: #faf089; color: #744210; }
+    .rank-badge.rank-bot { background: #fed7d7; color: #742a2a; }
+
     /* ── Person group ── */
     .person-group { margin-bottom: 28px; }
     .person-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -51,13 +76,17 @@
     .person-avg-grade { font-size: .75rem; color: #718096; }
 
     /* ── Market cards grid ── */
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
 
     .market-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow .15s; }
     .market-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
-    .card-header { display: flex; align-items: center; gap: 10px; }
+    .market-card.card-alert { border-color: #feb2b2; }
+    .market-card.card-warn  { border-color: #fbd38d; }
+    .card-header { display: flex; align-items: flex-start; gap: 10px; }
+    .card-title-wrap { flex: 1; }
+    .card-wh-row { display: flex; align-items: center; gap: 7px; }
     .card-wh { font-size: 1rem; font-weight: 800; color: #1a1a2e; }
-    .card-sub { font-size: .7rem; color: #a0aec0; }
+    .card-sub { font-size: .68rem; color: #a0aec0; margin-top: 1px; }
     .card-score-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
     .card-score-fill { height: 100%; border-radius: 3px; transition: width .4s; }
     .fill-A { background: #48bb78; }
@@ -68,12 +97,21 @@
 
     .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .metric { display: flex; flex-direction: column; gap: 1px; }
-    .metric-label { font-size: .64rem; color: #a0aec0; text-transform: uppercase; letter-spacing: .4px; }
+    .metric-label { font-size: .63rem; color: #a0aec0; text-transform: uppercase; letter-spacing: .4px; }
     .metric-value { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
-    .metric-delta { font-size: .65rem; font-weight: 600; }
-    .delta-up { color: #48bb78; }
-    .delta-dn { color: #f56565; }
+    .metric-delta { font-size: .63rem; font-weight: 600; }
+    .delta-up { color: #38a169; }
+    .delta-dn { color: #e53e3e; }
     .delta-flat { color: #a0aec0; }
+    .vs-avg { font-size: .62rem; color: #718096; }
+    .vs-avg-up { color: #38a169; font-weight: 600; }
+    .vs-avg-dn { color: #e53e3e; font-weight: 600; }
+
+    /* ── Assessment text ── */
+    .assessment { font-size: .72rem; color: #4a5568; line-height: 1.45; background: #f7fafc; border-radius: 6px; padding: 7px 10px; border-left: 3px solid #e2e8f0; }
+    .assessment.assess-ok { border-color: #68d391; background: #f0fff4; }
+    .assessment.assess-warn { border-color: #f6ad55; background: #fffaf0; }
+    .assessment.assess-alert { border-color: #fc8181; background: #fff5f5; }
 
     .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
     .tag { font-size: .62rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
@@ -82,41 +120,42 @@
     .tag-ok    { background: #c6f6d5; color: #22543d; }
     .tag-info  { background: #e9d8fd; color: #44337a; }
 
-    .no-data-card { background: #f7fafc; border: 1px dashed #cbd5e0; color: #a0aec0; font-size: .78rem; display: flex; align-items: center; justify-content: center; padding: 20px; border-radius: 12px; text-align: center; }
-
     /* ── Leaderboard ── */
     .leaderboard-wrap { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
-    .leaderboard-header { background: #1a1a2e; color: #fff; padding: 12px 18px; font-size: .8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .lb-lock { font-size: .72rem; color: #8892a4; font-weight: 400; }
+    .leaderboard-header { background: #1a1a2e; color: #fff; padding: 12px 18px; font-size: .8rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .lb-sub { font-size: .68rem; color: #8892a4; font-weight: 400; }
     table.leaderboard { width: 100%; border-collapse: collapse; font-size: .8rem; }
     table.leaderboard th { background: #f7fafc; color: #718096; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 8px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
     table.leaderboard td { padding: 9px 14px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
     table.leaderboard tr:last-child td { border-bottom: none; }
     table.leaderboard tr:hover td { background: #f7fafc; }
-    .rank-num { font-size: .85rem; font-weight: 800; color: #2d3748; width: 28px; }
-    .rank-1 .rank-num { color: #d69e2e; }
-    .rank-2 .rank-num { color: #718096; }
-    .rank-3 .rank-num { color: #c05621; }
+    .lb-rank { font-size: .9rem; font-weight: 800; color: #2d3748; }
+    .lb-rank-1 td .lb-rank { color: #d69e2e; }
+    .lb-rank-2 td .lb-rank { color: #718096; }
+    .lb-rank-3 td .lb-rank { color: #c05621; }
     .trend-chip { display: inline-block; font-size: .65rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; }
-    .trend-up { background: #c6f6d5; color: #22543d; }
-    .trend-dn { background: #fed7d7; color: #742a2a; }
+    .trend-up   { background: #c6f6d5; color: #22543d; }
+    .trend-dn   { background: #fed7d7; color: #742a2a; }
     .trend-flat { background: #e2e8f0; color: #718096; }
+    .score-bar-mini { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; width: 80px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+    .score-bar-mini-fill { height: 100%; border-radius: 2px; }
 
-    /* ── History chart placeholder ── */
+    /* ── History chart ── */
     .history-wrap { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 16px; }
-    .history-select { font-size: .78rem; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 6px; color: #2d3748; }
-    .history-canvas-wrap { margin-top: 12px; height: 200px; position: relative; }
+    .history-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .history-select { font-size: .78rem; padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 6px; color: #2d3748; }
+    .metric-select { font-size: .78rem; padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 6px; color: #2d3748; }
+    .history-canvas-wrap { height: 220px; position: relative; }
     canvas#historyChart { width: 100% !important; height: 100% !important; }
+    .history-empty { color: #a0aec0; font-size: .8rem; text-align: center; padding: 40px; }
 
-    /* ── Snapshot counter ── */
-    .snap-info { font-size: .72rem; color: #a0aec0; margin-bottom: 8px; }
-    .snap-info strong { color: #2d3748; }
+    /* ── Snap info ── */
+    .snap-info { font-size: .72rem; color: #a0aec0; margin-bottom: 10px; }
 
-    /* ── Loading/error states ── */
+    /* ── Loading/error ── */
     #loading-overlay { display: flex; align-items: center; justify-content: center; padding: 80px 20px; flex-direction: column; gap: 12px; }
     .spinner-lg { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #667eea; border-radius: 50%; animation: spin .8s linear infinite; }
     #loading-overlay p { font-size: .85rem; color: #718096; }
-
     #error-banner { background: #fed7d7; border: 1px solid #f56565; color: #742a2a; border-radius: 8px; padding: 10px 16px; font-size: .8rem; margin-bottom: 16px; display: none; }
   </style>
 </head>
@@ -124,10 +163,12 @@
 
 <header>
   <h1>📊 Procurement Performance Tracker</h1>
-  <div class="header-meta" id="last-snapshot">No snapshot yet today</div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadAndProcess()">
-    <span class="spin" id="spin">↻</span> Refresh Data
-  </button>
+  <div class="header-right">
+    <span class="header-meta" id="last-snapshot">—</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadAndProcess()">
+      <span class="spin" id="spin">↻</span> Refresh Data
+    </button>
+  </div>
 </header>
 
 <div class="status-bar">
@@ -137,6 +178,12 @@
   <div class="status-right" id="snap-count-bar"></div>
 </div>
 
+<!-- Portfolio KPI strip (hidden until loaded) -->
+<div class="portfolio-strip" id="portfolio-strip" style="display:none"></div>
+
+<!-- Needs Attention bar -->
+<div class="attention-strip" id="attention-strip" style="display:none"></div>
+
 <div class="page">
   <div id="error-banner"></div>
   <div id="loading-overlay">
@@ -144,19 +191,17 @@
     <p>Loading performance data…</p>
   </div>
   <div id="main-content" style="display:none">
-    <!-- Market cards by person -->
-    <div id="cards-section"></div>
 
-    <!-- Leaderboard -->
-    <div class="section-divider" id="leaderboard-section" style="display:none">
-      <div class="section-title">📈 Cross-Market Leaderboard</div>
+    <!-- Leaderboard — always visible -->
+    <div id="leaderboard-section">
+      <div class="section-title">📈 Market Leaderboard</div>
       <p class="snap-info" id="lb-snap-info"></p>
       <div class="leaderboard-wrap">
         <div class="leaderboard-header">
-          Market Rankings — Size-Weighted Performance
-          <span class="lb-lock" id="lb-lock"></span>
+          <span>Market Rankings — Size-Weighted Performance Score</span>
+          <span class="lb-sub" id="lb-sub"></span>
         </div>
-        <table class="leaderboard" id="lb-table">
+        <table class="leaderboard">
           <thead>
             <tr>
               <th>#</th>
@@ -168,6 +213,7 @@
               <th>OOS</th>
               <th>FEOOS</th>
               <th>Avg DoC</th>
+              <th>Past-Due POs</th>
               <th>7d Trend</th>
               <th>14d Trend</th>
             </tr>
@@ -177,20 +223,34 @@
       </div>
     </div>
 
+    <!-- Market cards by person -->
+    <div class="section-divider">
+      <div id="cards-section"></div>
+    </div>
+
     <!-- History chart -->
-    <div class="section-divider" id="history-section" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div class="section-title" style="margin:0">📉 In-Stock Rate History</div>
-        <select class="history-select" id="history-wh" onchange="renderHistory()">
-          <option value="">— Select Market —</option>
-        </select>
-      </div>
+    <div class="section-divider" id="history-section">
+      <div class="section-title">📉 Market History</div>
       <div class="history-wrap">
-        <div class="history-canvas-wrap">
-          <canvas id="historyChart"></canvas>
+        <div class="history-controls">
+          <select class="history-select" id="history-wh" onchange="renderHistory()">
+            <option value="">— Select Market —</option>
+          </select>
+          <select class="metric-select" id="history-metric" onchange="renderHistory()">
+            <option value="inStockRate">In-Stock Rate</option>
+            <option value="score">Composite Score</option>
+            <option value="oosCount">OOS Count</option>
+            <option value="avgDoc">Avg Days of Cover</option>
+            <option value="feooQty">FEOOS Qty</option>
+          </select>
+        </div>
+        <div class="history-canvas-wrap" id="history-canvas-wrap">
+          <div class="history-empty" id="history-empty">Load at least 2 days of data to see trends. Refresh daily — snapshots are stored automatically.</div>
+          <canvas id="historyChart" style="display:none"></canvas>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -198,10 +258,9 @@
 <script>
 'use strict';
 
-// ─── Config ──────────────────────────────────────────────────────────────────
-const SNAP_KEY    = 'perf_snapshots_v1';
-const MAX_DAYS    = 60;
-const MIN_COMPARE = 14;
+// ─── Config ───────────────────────────────────────────────────────────────────
+const SNAP_KEY = 'perf_snapshots_v1';
+const MAX_DAYS = 60;
 
 const SOURCES = {
   inv:   'https://docs.google.com/spreadsheets/d/1sPEc5rBdRB9qaJijBh4z8DK4ZVo--5xmTGbPTZ5n2nQ/export?format=csv&gid=1794766977',
@@ -222,20 +281,19 @@ const WH_GROUPS = [
 
 const WH_EXCLUDE = new Set(['MHT1', 'SFO1', 'MDT1-VA']);
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
-const pct = (n, d) => d > 0 ? (n / d * 100) : 0;
-const fmt1 = v => v.toFixed(1);
-const fmtPct = v => v.toFixed(1) + '%';
-const today = () => new Date().toISOString().slice(0, 10);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const num  = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const pct  = (n, d) => d > 0 ? n / d * 100 : 0;
+const fmt1 = v => (+v).toFixed(1);
+const fmtPct = v => (+v).toFixed(1) + '%';
+const todayStr = () => new Date().toISOString().slice(0, 10);
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (!lines.length) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').trim());
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
   return lines.slice(1).map(line => {
-    const vals = [];
-    let cur = '', inQ = false;
+    const vals = []; let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i];
       if (c === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
@@ -261,12 +319,13 @@ function grade(score) {
   return 'F';
 }
 
+// Composite: 40% in-stock | 25% FEOOS | 20% PO health | 15% coverage
 function composite(m) {
-  const inStockScore = m.inStockRate;
-  const feooScore    = Math.max(0, 100 - (m.velocity > 0 ? (m.feooQty / m.velocity) * 300 : 0));
-  const poScore      = Math.max(0, 100 - (m.skuCount > 0 ? (m.pastDuePOs / m.skuCount) * 400 : 0));
-  const coverScore   = Math.min(m.avgDoc / 30 * 100, 100);
-  return 0.40 * inStockScore + 0.25 * feooScore + 0.20 * poScore + 0.15 * coverScore;
+  const inStock  = m.inStockRate;
+  const feoo     = Math.max(0, 100 - (m.velocity > 0 ? (m.feooQty / m.velocity) * 300 : 0));
+  const po       = Math.max(0, 100 - (m.skuCount > 0 ? (m.pastDuePOs / m.skuCount) * 400 : 0));
+  const cover    = Math.min(m.avgDoc / 30 * 100, 100);
+  return 0.40 * inStock + 0.25 * feoo + 0.20 * po + 0.15 * cover;
 }
 
 function sizeWeight(m) {
@@ -278,131 +337,118 @@ function loadSnaps() {
   try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '{}'); } catch { return {}; }
 }
 function saveSnaps(snaps) {
-  // Prune to MAX_DAYS
   const dates = Object.keys(snaps).sort();
   if (dates.length > MAX_DAYS) dates.slice(0, dates.length - MAX_DAYS).forEach(d => delete snaps[d]);
   localStorage.setItem(SNAP_KEY, JSON.stringify(snaps));
 }
-function snapDayCount() { return Object.keys(loadSnaps()).length; }
 
-// ─── State ───────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────
 const state = { inv: [], feoos: [], pos: [] };
 let histChart = null;
 
-// ─── Data load ───────────────────────────────────────────────────────────────
+// ─── Load data ────────────────────────────────────────────────────────────────
 function setDot(key, status, text) {
   document.getElementById('dot-' + key).className = 'ds-dot ' + status;
   document.getElementById('txt-' + key).textContent = text;
 }
 
 async function loadAndProcess() {
-  const btn = document.getElementById('refresh-btn');
+  const btn  = document.getElementById('refresh-btn');
   const spin = document.getElementById('spin');
   btn.disabled = true;
   spin.classList.add('active');
   document.getElementById('loading-overlay').style.display = 'flex';
   document.getElementById('main-content').style.display = 'none';
+  document.getElementById('portfolio-strip').style.display = 'none';
+  document.getElementById('attention-strip').style.display = 'none';
   document.getElementById('error-banner').style.display = 'none';
 
   const keys = ['inv', 'feoos', 'pos'];
-  const labels = { inv: 'Inventory', feoos: 'FEOOS', pos: 'POs' };
-
   keys.forEach(k => setDot(k, 'loading', 'Loading…'));
 
   const results = await Promise.allSettled(keys.map(async k => {
     const resp = await fetch(SOURCES[k]);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const text = await resp.text();
-    const rows = parseCSV(text);
+    const rows = parseCSV(await resp.text());
     state[k] = rows;
     setDot(k, 'ok', rows.length.toLocaleString() + ' rows');
     return rows;
   }));
 
-  let hasError = false;
   results.forEach((r, i) => {
-    if (r.status === 'rejected') {
-      setDot(keys[i], 'err', 'Error');
-      hasError = true;
-    }
+    if (r.status === 'rejected') setDot(keys[i], 'err', 'Failed');
   });
-
-  if (hasError) {
-    document.getElementById('error-banner').style.display = 'block';
-    document.getElementById('error-banner').textContent = 'One or more data sources failed to load. Check your network and try again.';
-  }
 
   if (state.inv.length && state.feoos.length && state.pos.length) {
     process();
   } else {
-    document.getElementById('loading-overlay').innerHTML = '<p style="color:#f56565">Could not load required data.</p>';
+    document.getElementById('error-banner').style.display = 'block';
+    document.getElementById('error-banner').textContent = 'One or more data sources failed. Check your network connection.';
+    document.getElementById('loading-overlay').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
   }
-
   btn.disabled = false;
   spin.classList.remove('active');
 }
 
-// ─── Process & score ──────────────────────────────────────────────────────────
+// ─── Process ──────────────────────────────────────────────────────────────────
 function process() {
-  const todayStr = today();
+  const today = todayStr();
 
-  // ── Build per-warehouse metrics from inventory
+  // Per-warehouse inventory aggregation
   const whMap = {};
   state.inv.forEach(r => {
     const wh = (r.warehouse_name || '').trim();
     if (!wh || WH_EXCLUDE.has(wh) || !/^[A-Z0-9]{2,8}(-[A-Z0-9]+)?$/.test(wh)) return;
-    if (!whMap[wh]) whMap[wh] = { wh, skus: new Set(), vendors: new Set(), inStockCount: 0, oosCount: 0, totalDoc: 0, docCount: 0, velocity: 0 };
+    if (!whMap[wh]) whMap[wh] = { wh, skus: new Set(), vendors: new Set(), inStock: 0, oos: 0, totalDoc: 0, docCount: 0, vel: 0 };
     const m = whMap[wh];
-    const itemId = (r.item_uuid || r.item_name || '').trim();
-    if (itemId) m.skus.add(itemId);
-    const vendor = (r.full_vendor_name || r.vendor_name || '').trim();
-    if (vendor) m.vendors.add(vendor);
-    const onHand = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
-    const cons   = num(r.consumption_rate || 0);
-    if (onHand > 0) m.inStockCount++;
-    else m.oosCount++;
+    const id = (r.item_uuid || r.item_name || '').trim();
+    if (id) m.skus.add(id);
+    const v = (r.full_vendor_name || r.vendor_name || '').trim();
+    if (v) m.vendors.add(v);
+    const oh = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
+    if (oh > 0) m.inStock++; else m.oos++;
     const doc = num(r.net_days_of_cover || r.days_of_cover || 0);
     if (doc > 0) { m.totalDoc += doc; m.docCount++; }
-    m.velocity += cons;
+    m.vel += num(r.consumption_rate || 0);
   });
 
-  // ── FEOOS demand by warehouse
-  const feooByWh = {};
+  // FEOOS by warehouse
+  const feByWh = {};
   state.feoos.forEach(r => {
     const wh  = (r.warehouse_name || '').trim();
     const qty = num(r.forecasted_end_of_stock_units ?? r.feoos_qty ?? r.qty ?? 0);
     if (!wh || WH_EXCLUDE.has(wh)) return;
-    feooByWh[wh] = (feooByWh[wh] || 0) + qty;
+    feByWh[wh] = (feByWh[wh] || 0) + qty;
   });
 
-  // ── Past-due POs by warehouse
-  const pastDueByWh = {};
-  const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
+  // Past-due POs by warehouse
+  const pdByWh = {};
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
   state.pos.forEach(p => {
     const wh  = (p.warehouse_name || '').trim();
     const exp = p.expected_receipt_date_date || p.expected_receipt_date || '';
     if (!wh || !exp || WH_EXCLUDE.has(wh)) return;
     if (p.shipment_received_utc_date && p.shipment_received_utc_date.trim()) return;
-    const ordered   = num(p.purchase_order_units);
-    const received  = num(p.quantity_received_pu);
-    if (ordered > 0 && received >= ordered) return;
-    const expDate = new Date(exp); expDate.setHours(0, 0, 0, 0);
-    if (expDate < todayDate) pastDueByWh[wh] = (pastDueByWh[wh] || 0) + 1;
+    const ord = num(p.purchase_order_units), rec = num(p.quantity_received_pu);
+    if (ord > 0 && rec >= ord) return;
+    const expDate = new Date(exp); expDate.setHours(0,0,0,0);
+    if (expDate < todayDate) pdByWh[wh] = (pdByWh[wh] || 0) + 1;
   });
 
-  // ── Assemble market objects
+  // Assemble market objects
   const markets = {};
   Object.entries(whMap).forEach(([wh, m]) => {
-    const total       = m.inStockCount + m.oosCount;
-    const inStockRate = total > 0 ? pct(m.inStockCount, total) : 0;
-    const feooQty     = feooByWh[wh] || 0;
-    const pastDuePOs  = pastDueByWh[wh] || 0;
-    const avgDoc      = m.docCount > 0 ? m.totalDoc / m.docCount : 0;
-    const skuCount    = m.skus.size;
-    const vendorCount = m.vendors.size;
-    const velocity    = m.velocity;
+    const total      = m.inStock + m.oos;
+    const inStockRate = total > 0 ? pct(m.inStock, total) : 0;
+    const feooQty    = feByWh[wh] || 0;
+    const pastDuePOs = pdByWh[wh] || 0;
+    const avgDoc     = m.docCount > 0 ? m.totalDoc / m.docCount : 0;
+    const skuCount   = m.skus.size;
+    const vendorCount= m.vendors.size;
+    const velocity   = m.vel;
 
-    const met = { wh, inStockRate, oosCount: m.oosCount, feooQty, pastDuePOs, avgDoc, skuCount, vendorCount, velocity };
+    const met = { wh, inStockRate, oosCount: m.oos, feooQty, pastDuePOs, avgDoc, skuCount, vendorCount, velocity };
     met.score     = composite(met);
     met.grade     = grade(met.score);
     met.sizeWt    = sizeWeight(met);
@@ -410,93 +456,285 @@ function process() {
     markets[wh]   = met;
   });
 
-  // ── Snapshot today
+  // Portfolio averages
+  const mArr = Object.values(markets);
+  const pfAvgInStock = mArr.reduce((s, m) => s + m.inStockRate, 0) / mArr.length;
+  const pfTotalOOS   = mArr.reduce((s, m) => s + m.oosCount, 0);
+  const pfTotalFEOOS = mArr.reduce((s, m) => s + m.feooQty, 0);
+  const pfTotalPD    = mArr.reduce((s, m) => s + m.pastDuePOs, 0);
+  const pfAvgScore   = mArr.reduce((s, m) => s + m.score, 0) / mArr.length;
+  const pfAvgDoc     = mArr.reduce((s, m) => s + m.avgDoc, 0) / mArr.length;
+
+  // Rank all markets by size-weighted score
+  const ranked = [...mArr].sort((a, b) => b.rankScore - a.rankScore);
+  ranked.forEach((m, i) => { m.rank = i + 1; m.rankOf = ranked.length; });
+
+  // Save snapshot
   const snaps = loadSnaps();
-  snaps[todayStr] = Object.fromEntries(
+  snaps[today] = Object.fromEntries(
     Object.entries(markets).map(([wh, m]) => [wh, {
-      inStockRate: m.inStockRate,
-      oosCount:    m.oosCount,
-      feooQty:     m.feooQty,
-      pastDuePOs:  m.pastDuePOs,
-      avgDoc:      m.avgDoc,
-      skuCount:    m.skuCount,
-      vendorCount: m.vendorCount,
-      velocity:    m.velocity,
-      score:       m.score,
-      grade:       m.grade,
+      inStockRate: m.inStockRate, oosCount: m.oosCount, feooQty: m.feooQty,
+      pastDuePOs: m.pastDuePOs, avgDoc: m.avgDoc, skuCount: m.skuCount,
+      vendorCount: m.vendorCount, velocity: m.velocity, score: m.score, grade: m.grade,
     }])
   );
   saveSnaps(snaps);
 
-  // Update header
-  document.getElementById('last-snapshot').textContent = 'Snapshot: ' + todayStr;
   const dayCount = Object.keys(snaps).length;
-  document.getElementById('snap-count-bar').textContent = dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of history stored';
+  document.getElementById('last-snapshot').textContent = 'Snapshot saved: ' + today;
+  document.getElementById('snap-count-bar').textContent = dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of history';
 
-  // ── Render
-  renderCards(markets, snaps);
-  renderLeaderboard(markets, snaps, dayCount);
-  renderHistoryOptions(markets);
+  // ── Render everything
+  renderPortfolioStrip(pfAvgInStock, pfTotalOOS, pfTotalFEOOS, pfTotalPD, pfAvgScore, pfAvgDoc, mArr.length, snaps, today);
+  renderAttentionBar(ranked, pfAvgInStock);
+  renderLeaderboard(markets, ranked, snaps, today, dayCount);
+  renderCards(markets, ranked, snaps, today, pfAvgInStock, pfAvgDoc);
+  renderHistoryOptions(markets, snaps);
 
   document.getElementById('loading-overlay').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
 }
 
-// ─── Cards ────────────────────────────────────────────────────────────────────
-function renderCards(markets, snaps) {
-  const section = document.getElementById('cards-section');
-  section.innerHTML = '<div class="section-title">Market Scorecard — Today</div>';
+// ─── Portfolio KPI strip ───────────────────────────────────────────────────────
+function renderPortfolioStrip(inStock, oos, feoos, pd, score, doc, mkts, snaps, today) {
+  const strip = document.getElementById('portfolio-strip');
+  const g = grade(score);
+  const gradeColors = { A:'#68d391', B:'#63b3ed', C:'#f6e05e', D:'#f6ad55', F:'#fc8181' };
+  const gradeText   = { A:'#22543d', B:'#1a365d', C:'#744210', D:'#7b341e', F:'#742a2a' };
 
-  // Get yesterday's data for deltas
+  // Prior-day portfolio deltas
+  const dates   = Object.keys(snaps).sort();
+  const prevDay = dates.filter(d => d < today).slice(-1)[0];
+  let prevInStock = null;
+  if (prevDay) {
+    const prevMkts = Object.values(snaps[prevDay]);
+    if (prevMkts.length) prevInStock = prevMkts.reduce((s, m) => s + m.inStockRate, 0) / prevMkts.length;
+  }
+  const deltaInStock = prevInStock !== null ? (inStock - prevInStock) : null;
+  const deltaStr = deltaInStock !== null
+    ? `<span style="font-size:.65rem;font-weight:700;color:${deltaInStock >= 0 ? '#68d391' : '#fc8181'}">${deltaInStock >= 0 ? '▲' : '▼'}${Math.abs(deltaInStock).toFixed(2)}pp vs. yesterday</span>`
+    : '';
+
+  strip.innerHTML = `
+    <div class="pf-kpi" style="display:flex;align-items:center;gap:10px;padding-left:0">
+      <div class="pf-grade-badge" style="background:${gradeColors[g]};color:${gradeText[g]}">${g}</div>
+      <div>
+        <div class="pf-kpi-label">Portfolio Grade</div>
+        <div class="pf-kpi-sub" style="color:#a0aec0">Avg score ${fmt1(score)} · ${mkts} markets</div>
+      </div>
+    </div>
+    <div class="pf-kpi">
+      <div class="pf-kpi-label">Portfolio In-Stock</div>
+      <div class="pf-kpi-value">${fmtPct(inStock)}</div>
+      <div class="pf-kpi-sub">${deltaStr || 'No prior-day data yet'}</div>
+    </div>
+    <div class="pf-kpi">
+      <div class="pf-kpi-label">Total OOS SKUs</div>
+      <div class="pf-kpi-value">${oos.toLocaleString()}</div>
+      <div class="pf-kpi-sub">across all markets</div>
+    </div>
+    <div class="pf-kpi">
+      <div class="pf-kpi-label">Total FEOOS</div>
+      <div class="pf-kpi-value">${feoos > 0 ? feoos.toLocaleString() : '—'}</div>
+      <div class="pf-kpi-sub">forecasted stock-out units</div>
+    </div>
+    <div class="pf-kpi">
+      <div class="pf-kpi-label">Past-Due POs</div>
+      <div class="pf-kpi-value" style="color:${pd > 10 ? '#fc8181' : pd > 5 ? '#f6ad55' : '#fff'}">${pd}</div>
+      <div class="pf-kpi-sub">across all markets</div>
+    </div>
+    <div class="pf-kpi">
+      <div class="pf-kpi-label">Portfolio Avg DoC</div>
+      <div class="pf-kpi-value">${fmt1(doc)}d</div>
+      <div class="pf-kpi-sub">avg days of cover</div>
+    </div>
+  `;
+  strip.style.display = 'flex';
+}
+
+// ─── Needs Attention bar ──────────────────────────────────────────────────────
+function renderAttentionBar(ranked, pfAvgInStock) {
+  const strip = document.getElementById('attention-strip');
+
+  // Worst in-stock
+  const worstIS  = [...ranked].sort((a, b) => a.inStockRate - b.inStockRate)[0];
+  // Highest FEOOS
+  const highFE   = [...ranked].sort((a, b) => b.feooQty - a.feooQty)[0];
+  // Most past-due POs
+  const mostPD   = [...ranked].sort((a, b) => b.pastDuePOs - a.pastDuePOs)[0];
+  // Lowest avg DoC
+  const lowDoc   = [...ranked].sort((a, b) => a.avgDoc - b.avgDoc)[0];
+  // Biggest gap to portfolio avg
+  const gapFrom  = ranked.filter(m => m.inStockRate < pfAvgInStock).sort((a, b) => a.inStockRate - b.inStockRate)[0];
+
+  const items = [];
+  if (worstIS) items.push(`
+    <div class="attn-item">
+      <div class="attn-label">Lowest In-Stock</div>
+      <div class="attn-value">${worstIS.wh} — ${fmtPct(worstIS.inStockRate)}</div>
+      <div class="attn-sub">${worstIS.oosCount} OOS SKUs</div>
+    </div>`);
+  if (highFE && highFE.feooQty > 0) items.push(`
+    <div class="attn-item">
+      <div class="attn-label">Highest FEOOS</div>
+      <div class="attn-value">${highFE.wh} — ${highFE.feooQty.toLocaleString()} units</div>
+      <div class="attn-sub">forecasted stock-outs</div>
+    </div>`);
+  if (mostPD && mostPD.pastDuePOs > 0) items.push(`
+    <div class="attn-item">
+      <div class="attn-label">Most Past-Due POs</div>
+      <div class="attn-value">${mostPD.wh} — ${mostPD.pastDuePOs} POs</div>
+      <div class="attn-sub">overdue & unreceived</div>
+    </div>`);
+  if (lowDoc && lowDoc.avgDoc < 21) items.push(`
+    <div class="attn-item">
+      <div class="attn-label">Lowest Coverage</div>
+      <div class="attn-value">${lowDoc.wh} — ${fmt1(lowDoc.avgDoc)}d avg DoC</div>
+      <div class="attn-sub">${lowDoc.avgDoc < 14 ? '⚠️ critical' : 'below target'}</div>
+    </div>`);
+  if (gapFrom && pfAvgInStock - gapFrom.inStockRate > 2) items.push(`
+    <div class="attn-item">
+      <div class="attn-label">Furthest Below Avg</div>
+      <div class="attn-value">${gapFrom.wh} — ${fmt1(pfAvgInStock - gapFrom.inStockRate)}pp gap</div>
+      <div class="attn-sub">vs. portfolio average</div>
+    </div>`);
+
+  if (!items.length) { strip.style.display = 'none'; return; }
+  strip.innerHTML = `<div class="attention-title">⚠️ Needs Attention</div>` + items.join('');
+  strip.style.display = 'flex';
+}
+
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
+function renderLeaderboard(markets, ranked, snaps, today, dayCount) {
   const dates = Object.keys(snaps).sort();
-  const todayStr = today();
-  const prevDate = dates.filter(d => d < todayStr).slice(-1)[0];
-  const prevSnap = prevDate ? snaps[prevDate] : null;
+  const d7    = dates.filter(d => d < today).slice(-7)[0];
+  const d14   = dates.filter(d => d < today).slice(-14)[0];
+
+  document.getElementById('lb-snap-info').textContent =
+    dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of data stored' +
+    (dayCount < 7  ? ' — trend columns will populate as history builds.' :
+     dayCount < 14 ? ' — 14d trend column will populate in ' + (14 - dayCount) + ' more days.' : '.');
+
+  document.getElementById('lb-sub').textContent =
+    dayCount >= 14 ? '14-day trends active' : dayCount >= 7 ? '7-day trends active' : 'Ranking live from day 1';
+
+  const trendChip = (t) => {
+    if (t === null) return '<span class="trend-chip trend-flat">—</span>';
+    if (t > 1)  return `<span class="trend-chip trend-up">▲ ${fmt1(t)}</span>`;
+    if (t < -1) return `<span class="trend-chip trend-dn">▼ ${fmt1(Math.abs(t))}</span>`;
+    return '<span class="trend-chip trend-flat">→</span>';
+  };
+
+  const fillColor = { A:'#48bb78', B:'#4299e1', C:'#ecc94b', D:'#ed8936', F:'#f56565' };
+
+  const tbody = document.getElementById('lb-tbody');
+  tbody.innerHTML = '';
+  ranked.forEach((m, idx) => {
+    const rank  = idx + 1;
+    const s7    = d7  ? snaps[d7][m.wh]  : null;
+    const s14   = d14 ? snaps[d14][m.wh] : null;
+    const t7    = s7  ? m.score - s7.score  : null;
+    const t14   = s14 ? m.score - s14.score : null;
+    const grp   = whGroup(m.wh);
+    const tr = document.createElement('tr');
+    tr.className = rank <= 3 ? 'lb-rank-' + rank : '';
+    tr.innerHTML = `
+      <td><span class="lb-rank">${rank}</span></td>
+      <td><strong>${m.wh}</strong></td>
+      <td style="font-size:.74rem;color:#718096">${grp ? grp.name : '—'}</td>
+      <td><span class="grade grade-${m.grade}" style="width:26px;height:26px;font-size:.85rem">${m.grade}</span></td>
+      <td>
+        <strong>${fmt1(m.score)}</strong>
+        <span class="score-bar-mini"><span class="score-bar-mini-fill" style="width:${Math.min(m.score,100).toFixed(0)}%;background:${fillColor[m.grade]}"></span></span>
+      </td>
+      <td>${fmtPct(m.inStockRate)}</td>
+      <td>${m.oosCount.toLocaleString()}</td>
+      <td>${m.feooQty > 0 ? m.feooQty.toLocaleString() : '—'}</td>
+      <td>${fmt1(m.avgDoc)}d</td>
+      <td>${m.pastDuePOs > 0 ? m.pastDuePOs : '—'}</td>
+      <td>${trendChip(t7)}</td>
+      <td>${trendChip(t14)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── Market cards ─────────────────────────────────────────────────────────────
+function renderCards(markets, ranked, snaps, today, pfAvgInStock, pfAvgDoc) {
+  const section = document.getElementById('cards-section');
+  section.innerHTML = '<div class="section-title">Market Scorecards by Manager</div>';
+
+  const dates   = Object.keys(snaps).sort();
+  const prevDay = dates.filter(d => d < today).slice(-1)[0];
+  const prevSnap = prevDay ? snaps[prevDay] : null;
+  const totalMarkets = ranked.length;
 
   WH_GROUPS.forEach(grp => {
-    // Find warehouses that belong to this group and have data
     const whList = Object.keys(markets).filter(wh => grp.codes.some(c => wh.startsWith(c))).sort();
     if (!whList.length) return;
 
-    // Compute group average grade
     const groupScores = whList.map(wh => markets[wh].score);
-    const avgScore = groupScores.reduce((a, b) => a + b, 0) / groupScores.length;
-    const grpGrade = grade(avgScore);
+    const avgScore    = groupScores.reduce((a, b) => a + b, 0) / groupScores.length;
+    const grpGrade    = grade(avgScore);
+    // Best and worst in group for context
+    const sortedGroup = whList.map(wh => markets[wh]).sort((a, b) => b.score - a.score);
 
     const grpDiv = document.createElement('div');
     grpDiv.className = 'person-group';
     grpDiv.innerHTML = `
       <div class="person-header">
-        <span class="grade grade-${grpGrade}" title="Group avg score ${fmt1(avgScore)}">${grpGrade}</span>
+        <span class="grade grade-${grpGrade}">${grpGrade}</span>
         <div>
           <div class="person-name">${grp.name}</div>
-          <div class="person-avg-grade">Avg score ${fmt1(avgScore)} · ${whList.length} market${whList.length !== 1 ? 's' : ''}</div>
+          <div class="person-avg-grade">Group avg score ${fmt1(avgScore)} · ${whList.length} market${whList.length !== 1 ? 's' : ''}</div>
         </div>
       </div>
-      <div class="cards-grid" id="grid-${grp.name.replace(/\s+/g,'-')}"></div>
+      <div class="cards-grid"></div>
     `;
     section.appendChild(grpDiv);
-
     const grid = grpDiv.querySelector('.cards-grid');
 
     whList.forEach(wh => {
-      const m  = markets[wh];
+      const m    = markets[wh];
       const prev = prevSnap ? prevSnap[wh] : null;
 
-      const deltaRate = prev ? (m.inStockRate - prev.inStockRate) : null;
-      const deltaOOS  = prev ? (m.oosCount    - prev.oosCount)    : null;
-      const deltaDoc  = prev ? (m.avgDoc       - prev.avgDoc)      : null;
+      const deltaRate = prev != null ? (m.inStockRate - prev.inStockRate) : null;
+      const deltaOOS  = prev != null ? (m.oosCount    - prev.oosCount)    : null;
+      const deltaDoc  = prev != null ? (m.avgDoc       - prev.avgDoc)      : null;
+      const deltaScore= prev != null ? (m.score        - prev.score)       : null;
 
-      const tags = buildTags(m);
+      const vsAvgIS  = m.inStockRate - pfAvgInStock;
+      const vsAvgDoc = m.avgDoc      - pfAvgDoc;
+
+      const tags      = buildTags(m);
+      const assess    = buildAssessment(m, pfAvgInStock);
+      const rankClass = m.rank <= 3 ? 'rank-top' : m.rank >= totalMarkets - 2 ? 'rank-bot' : '';
+      const cardClass = m.grade === 'F' || m.grade === 'D' ? 'card-alert' : m.grade === 'C' ? 'card-warn' : '';
+
+      const deltaFmt = (val, pos, suffix = '') => {
+        if (val === null) return '';
+        const good = pos ? val > 0.05 : val < -0.05;
+        const bad  = pos ? val < -0.05 : val > 0.05;
+        const cls  = good ? 'delta-up' : bad ? 'delta-dn' : 'delta-flat';
+        return `<div class="metric-delta ${cls}">${val >= 0 ? '+' : ''}${fmt1(val)}${suffix} vs. yesterday</div>`;
+      };
+      const vsAvgFmt = (val, suffix, pos) => {
+        if (Math.abs(val) < 0.1) return `<div class="vs-avg">≈ portfolio avg</div>`;
+        const good = pos ? val > 0 : val < 0;
+        return `<div class="vs-avg ${good ? 'vs-avg-up' : 'vs-avg-dn'}">${val >= 0 ? '+' : ''}${fmt1(val)}${suffix} vs. portfolio</div>`;
+      };
 
       const card = document.createElement('div');
-      card.className = 'market-card';
+      card.className = `market-card ${cardClass}`;
       card.innerHTML = `
         <div class="card-header">
           <span class="grade grade-${m.grade}">${m.grade}</span>
-          <div style="flex:1">
-            <div class="card-wh">${wh}</div>
-            <div class="card-sub">Score: ${fmt1(m.score)} · ${m.skuCount} SKUs · ${m.vendorCount} vendors</div>
+          <div class="card-title-wrap">
+            <div class="card-wh-row">
+              <span class="card-wh">${wh}</span>
+              <span class="rank-badge ${rankClass}">#${m.rank} of ${totalMarkets}</span>
+            </div>
+            <div class="card-sub">${m.skuCount} SKUs · ${m.vendorCount} vendors · score ${fmt1(m.score)}${deltaScore !== null ? ` (${deltaScore >= 0 ? '+' : ''}${fmt1(deltaScore)} vs. yesterday)` : ''}</div>
           </div>
         </div>
         <div class="card-score-bar"><div class="card-score-fill fill-${m.grade}" style="width:${Math.min(m.score,100).toFixed(0)}%"></div></div>
@@ -504,31 +742,36 @@ function renderCards(markets, snaps) {
           <div class="metric">
             <div class="metric-label">In-Stock Rate</div>
             <div class="metric-value">${fmtPct(m.inStockRate)}</div>
-            ${deltaRate !== null ? `<div class="metric-delta ${deltaRate > 0.05 ? 'delta-up' : deltaRate < -0.05 ? 'delta-dn' : 'delta-flat'}">${deltaRate >= 0 ? '+' : ''}${fmt1(deltaRate)}pp vs. yesterday</div>` : ''}
+            ${deltaFmt(deltaRate, true, 'pp')}
+            ${vsAvgFmt(vsAvgIS, 'pp', true)}
           </div>
           <div class="metric">
             <div class="metric-label">OOS Items</div>
             <div class="metric-value">${m.oosCount.toLocaleString()}</div>
-            ${deltaOOS !== null ? `<div class="metric-delta ${deltaOOS < 0 ? 'delta-up' : deltaOOS > 0 ? 'delta-dn' : 'delta-flat'}">${deltaOOS >= 0 ? '+' : ''}${deltaOOS} vs. yesterday</div>` : ''}
+            ${deltaFmt(deltaOOS, false, '')}
           </div>
           <div class="metric">
             <div class="metric-label">FEOOS Pressure</div>
             <div class="metric-value">${m.feooQty > 0 ? m.feooQty.toLocaleString() : '—'}</div>
+            <div class="vs-avg">${m.feooQty > 0 ? Math.round(m.feooQty / Math.max(m.skuCount, 1) * 100) / 100 + ' avg/SKU' : 'No pressure'}</div>
           </div>
           <div class="metric">
             <div class="metric-label">Avg Days of Cover</div>
             <div class="metric-value">${fmt1(m.avgDoc)}d</div>
-            ${deltaDoc !== null ? `<div class="metric-delta ${deltaDoc > 0 ? 'delta-up' : deltaDoc < 0 ? 'delta-dn' : 'delta-flat'}">${deltaDoc >= 0 ? '+' : ''}${fmt1(deltaDoc)}d vs. yesterday</div>` : ''}
+            ${deltaFmt(deltaDoc, true, 'd')}
+            ${vsAvgFmt(vsAvgDoc, 'd', true)}
           </div>
           <div class="metric">
             <div class="metric-label">Past-Due POs</div>
-            <div class="metric-value">${m.pastDuePOs > 0 ? m.pastDuePOs : '—'}</div>
+            <div class="metric-value" style="${m.pastDuePOs > 5 ? 'color:#e53e3e' : m.pastDuePOs > 0 ? 'color:#d69e2e' : ''}">${m.pastDuePOs > 0 ? m.pastDuePOs : '—'}</div>
           </div>
           <div class="metric">
             <div class="metric-label">Daily Velocity</div>
             <div class="metric-value">${m.velocity > 0 ? fmt1(m.velocity) : '—'}</div>
+            <div class="vs-avg">${m.skuCount > 0 ? fmt1(m.velocity / m.skuCount) + ' avg/SKU' : ''}</div>
           </div>
         </div>
+        <div class="assessment assess-${assess.type}">${assess.text}</div>
         ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('')}</div>` : ''}
       `;
       grid.appendChild(card);
@@ -536,11 +779,38 @@ function renderCards(markets, snaps) {
   });
 }
 
+function buildAssessment(m, pfAvgInStock) {
+  const issues = [];
+  if (m.inStockRate < 85)   issues.push('critically low in-stock rate');
+  else if (m.inStockRate < 92) issues.push('in-stock rate below 92% target');
+  if (m.feooQty > 100)      issues.push('high FEOOS demand — orders needed');
+  else if (m.feooQty > 30)  issues.push('FEOOS pressure building');
+  if (m.pastDuePOs > 5)     issues.push(`${m.pastDuePOs} past-due POs need follow-up`);
+  else if (m.pastDuePOs > 0) issues.push(`${m.pastDuePOs} PO${m.pastDuePOs > 1 ? 's' : ''} past due`);
+  if (m.avgDoc < 14)        issues.push('coverage critically low — replenish urgently');
+  else if (m.avgDoc < 21)   issues.push('coverage below 3-week threshold');
+  const aboveAvg = m.inStockRate - pfAvgInStock;
+
+  if (m.grade === 'A') {
+    return { type: 'ok', text: `Strong performer. ${aboveAvg >= 0 ? `${fmt1(aboveAvg)}pp above portfolio average.` : 'At or near portfolio average.'} No critical issues detected.` };
+  }
+  if (m.grade === 'B') {
+    const main = issues[0] || 'minor gaps present';
+    return { type: 'ok', text: `Solid overall. Primary watch item: ${main}. ${issues.length > 1 ? `Also: ${issues.slice(1).join(', ')}.` : ''}` };
+  }
+  if (m.grade === 'C') {
+    return { type: 'warn', text: `Mixed results. ${issues.length ? `Key issues: ${issues.slice(0, 2).join('; ')}.` : ''} Needs monitoring and action plan.` };
+  }
+  // D or F
+  return { type: 'alert', text: `Underperforming. Immediate attention required: ${issues.slice(0, 3).join('; ') || 'composite score critically low'}.` };
+}
+
 function buildTags(m) {
   const tags = [];
-  if (m.inStockRate < 85)       tags.push({ type: 'alert', label: '🔴 Low In-Stock' });
-  else if (m.inStockRate < 92)  tags.push({ type: 'warn',  label: '🟡 In-Stock Watch' });
-  else                           tags.push({ type: 'ok',   label: '✅ In-Stock OK' });
+  if (m.inStockRate >= 95)       tags.push({ type: 'ok',    label: '✅ In-Stock 95%+' });
+  else if (m.inStockRate >= 92)  tags.push({ type: 'ok',    label: '✅ In-Stock OK' });
+  else if (m.inStockRate >= 85)  tags.push({ type: 'warn',  label: '🟡 In-Stock Watch' });
+  else                            tags.push({ type: 'alert', label: '🔴 Low In-Stock' });
 
   if (m.feooQty > 100)           tags.push({ type: 'alert', label: '⚠️ High FEOOS' });
   else if (m.feooQty > 30)       tags.push({ type: 'warn',  label: '⚡ FEOOS Pressure' });
@@ -554,93 +824,42 @@ function buildTags(m) {
   return tags;
 }
 
-// ─── Leaderboard ─────────────────────────────────────────────────────────────
-function renderLeaderboard(markets, snaps, dayCount) {
-  const todayStr = today();
-  const dates    = Object.keys(snaps).sort();
-
-  document.getElementById('lb-snap-info').textContent =
-    dayCount + ' day' + (dayCount !== 1 ? 's' : '') + ' of data stored. ' +
-    (dayCount < MIN_COMPARE ? `Cross-market comparisons unlock at ${MIN_COMPARE} days.` : 'Full comparative ranking active.');
-
-  if (dayCount >= MIN_COMPARE) {
-    document.getElementById('leaderboard-section').style.display = 'block';
-    document.getElementById('lb-lock').textContent = '';
-  } else {
-    document.getElementById('leaderboard-section').style.display = 'block'; // Show section with partial info
-    document.getElementById('lb-lock').textContent = `(unlocks in ${MIN_COMPARE - dayCount} more day${MIN_COMPARE - dayCount !== 1 ? 's' : ''})`;
-  }
-
-  const d7  = dates.filter(d => d < todayStr).slice(-7)[0];
-  const d14 = dates.filter(d => d < todayStr).slice(-14)[0];
-
-  // Rank markets
-  const ranked = Object.values(markets).sort((a, b) => b.rankScore - a.rankScore);
-
-  const tbody = document.getElementById('lb-tbody');
-  tbody.innerHTML = '';
-
-  ranked.forEach((m, idx) => {
-    const rank = idx + 1;
-
-    // Trends
-    const snap7  = d7  ? snaps[d7][m.wh]  : null;
-    const snap14 = d14 ? snaps[d14][m.wh] : null;
-
-    const trend7  = snap7  ? (m.score - snap7.score)  : null;
-    const trend14 = snap14 ? (m.score - snap14.score) : null;
-
-    const trendChip = (t) => {
-      if (t === null) return '<span class="trend-chip trend-flat">—</span>';
-      if (t > 1)  return `<span class="trend-chip trend-up">▲ ${fmt1(t)}</span>`;
-      if (t < -1) return `<span class="trend-chip trend-dn">▼ ${fmt1(Math.abs(t))}</span>`;
-      return '<span class="trend-chip trend-flat">→ flat</span>';
-    };
-
-    const grp = whGroup(m.wh);
-
-    const tr = document.createElement('tr');
-    tr.className = rank <= 3 ? `rank-${rank}` : '';
-    tr.innerHTML = `
-      <td><span class="rank-num">${rank}</span></td>
-      <td><strong>${m.wh}</strong></td>
-      <td style="font-size:.75rem;color:#718096">${grp ? grp.name : '—'}</td>
-      <td><span class="grade grade-${m.grade}" style="width:28px;height:28px;font-size:.9rem">${m.grade}</span></td>
-      <td><strong>${fmt1(m.score)}</strong></td>
-      <td>${fmtPct(m.inStockRate)}</td>
-      <td>${m.oosCount}</td>
-      <td>${m.feooQty > 0 ? m.feooQty.toLocaleString() : '—'}</td>
-      <td>${fmt1(m.avgDoc)}d</td>
-      <td>${trendChip(trend7)}</td>
-      <td>${trendChip(trend14)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
 // ─── History chart ────────────────────────────────────────────────────────────
-function renderHistoryOptions(markets) {
-  const snaps = loadSnaps();
-  if (Object.keys(snaps).length < 2) return;
-
+function renderHistoryOptions(markets, snaps) {
   const sel = document.getElementById('history-wh');
   sel.innerHTML = '<option value="">— Select Market —</option>';
   Object.keys(markets).sort().forEach(wh => {
-    const opt = document.createElement('option');
-    opt.value = wh; opt.textContent = wh;
-    sel.appendChild(opt);
+    const o = document.createElement('option'); o.value = wh; o.textContent = wh; sel.appendChild(o);
   });
-  document.getElementById('history-section').style.display = 'block';
+
+  const dates = Object.keys(snaps).sort();
+  if (dates.length >= 2) {
+    document.getElementById('history-empty').style.display = 'none';
+    document.getElementById('historyChart').style.display = 'block';
+    // Auto-select first market
+    if (Object.keys(markets).length) {
+      sel.value = Object.keys(markets).sort()[0];
+      renderHistory();
+    }
+  }
 }
 
 function renderHistory() {
-  const wh = document.getElementById('history-wh').value;
+  const wh     = document.getElementById('history-wh').value;
+  const metric = document.getElementById('history-metric').value;
   if (!wh) return;
 
-  const snaps = loadSnaps();
-  const dates = Object.keys(snaps).sort();
-  const labels = dates;
-  const values = dates.map(d => snaps[d][wh] ? parseFloat(snaps[d][wh].inStockRate.toFixed(2)) : null);
+  const snaps  = loadSnaps();
+  const dates  = Object.keys(snaps).sort();
+  if (dates.length < 2) return;
+
+  const metricLabels = {
+    inStockRate: 'In-Stock Rate (%)', score: 'Composite Score',
+    oosCount: 'OOS Count', avgDoc: 'Avg Days of Cover', feooQty: 'FEOOS Qty'
+  };
+  const isPct = metric === 'inStockRate';
+
+  const values = dates.map(d => snaps[d][wh] != null ? parseFloat((+snaps[d][wh][metric]).toFixed(2)) : null);
 
   const ctx = document.getElementById('historyChart').getContext('2d');
   if (histChart) histChart.destroy();
@@ -648,12 +867,12 @@ function renderHistory() {
   histChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
+      labels: dates,
       datasets: [{
-        label: wh + ' In-Stock Rate (%)',
+        label: wh + ' — ' + metricLabels[metric],
         data: values,
         borderColor: '#667eea',
-        backgroundColor: 'rgba(102,126,234,.1)',
+        backgroundColor: 'rgba(102,126,234,.08)',
         borderWidth: 2,
         pointRadius: 3,
         pointBackgroundColor: '#667eea',
@@ -665,10 +884,15 @@ function renderHistory() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => (isPct ? ctx.parsed.y.toFixed(1) + '%' : ctx.parsed.y.toFixed(1)) } } },
       scales: {
         x: { ticks: { font: { size: 10 } }, grid: { display: false } },
-        y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: v => v + '%' }, grid: { color: '#f0f2f5' } }
+        y: {
+          min: isPct || metric === 'score' ? 0 : undefined,
+          max: isPct || metric === 'score' ? 100 : undefined,
+          ticks: { font: { size: 10 }, callback: v => isPct ? v + '%' : v },
+          grid: { color: '#f0f2f5' }
+        }
       }
     }
   });
