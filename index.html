@@ -293,6 +293,7 @@ const WH_EXCLUDE = new Set(['MHT1', 'SFO1', 'MDT1-VA']);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const num  = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const bool = v => String(v).toUpperCase() === 'TRUE';
 const pct  = (n, d) => d > 0 ? n / d * 100 : 0;
 const fmt1 = v => (+v).toFixed(1);
 const fmt0 = v => Math.round(+v).toLocaleString();
@@ -429,10 +430,11 @@ function process() {
   });
 
   // ── FEOOS index: wh::normName -> qty
+  // FEOOS sheet uses "warehouse" (not warehouse_name) and quantity_of_feoos_items_requested_in_sales_units
   const feIdx = {};
   state.feoos.forEach(r => {
-    const wh  = (r.warehouse_name || '').trim();
-    const qty = num(r.forecasted_end_of_stock_units ?? r.feoos_qty ?? r.qty ?? 0);
+    const wh  = (r.warehouse || '').trim();
+    const qty = num(r.quantity_of_feoos_items_requested_in_sales_units || 0);
     if (!wh || WH_EXCLUDE.has(wh)) return;
     const key = wh + '::' + normName(r.item_name);
     feIdx[key] = (feIdx[key] || 0) + qty;
@@ -446,31 +448,38 @@ function process() {
   });
 
   // ── Per-warehouse market metrics
+  // Field names from procurement dashboard:
+  //   in_catalog (bool) — only count catalog items
+  //   inventory       — raw on-hand (use for OOS check: <= 0)
+  //   net_inventory   — net on-hand incl. pipeline (use for in-stock check: > 0)
+  //   consumption_rate, net_days_of_cover, full_vendor_name, item_uuid
   const whMap = {};
   state.inv.forEach(r => {
     const wh = (r.warehouse_name || '').trim();
     if (!wh || WH_EXCLUDE.has(wh) || !/^[A-Z0-9]{2,8}(-[A-Z0-9]+)?$/.test(wh)) return;
+    if (!bool(r.in_catalog)) return; // only catalog items
     if (!whMap[wh]) whMap[wh] = { wh, skus: new Set(), vendors: new Set(), inStock: 0, oos: 0, totalDoc: 0, docCount: 0, vel: 0, atRisk: [], highOOS: [] };
-    const m  = whMap[wh];
-    const id = (r.item_uuid || r.item_name || '').trim();
+    const m    = whMap[wh];
+    const id   = (r.item_uuid || r.item_name || '').trim();
     if (id) m.skus.add(id);
-    const v = (r.full_vendor_name || r.vendor_name || '').trim();
+    const v = (r.full_vendor_name || '').trim();
     if (v) m.vendors.add(v);
-    const oh  = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
-    const doc = num(r.net_days_of_cover || r.days_of_cover || 0);
-    const vel = num(r.consumption_rate || 0);
-    if (oh > 0) m.inStock++; else m.oos++;
+    const oh    = num(r.inventory);       // raw on-hand
+    const netOH = num(r.net_inventory);   // net (used for in-stock rate)
+    const doc   = num(r.net_days_of_cover || 0);
+    const vel   = num(r.consumption_rate || 0);
+    if (netOH > 0) m.inStock++; else m.oos++;
     if (doc > 0) { m.totalDoc += doc; m.docCount++; }
     m.vel += vel;
 
-    // Tag at-risk (in stock but low DoC) — collect for card mini-list
+    // Tag at-risk: in-stock but low net DoC
     const poKey = wh + '::' + normName(r.item_name);
     const hasPO = !!poIdx[poKey];
-    if (oh > 0 && doc > 0 && doc < 21 && vel > 0) {
+    if (netOH > 0 && doc > 0 && doc < 21 && vel > 0) {
       m.atRisk.push({ name: r.item_name, doc, vel, hasPO, poDate: hasPO ? poIdx[poKey].date : null });
     }
-    // High-velocity OOS
-    if (oh === 0 && vel > 0) {
+    // High-velocity OOS (raw inventory <= 0)
+    if (oh <= 0 && vel > 0) {
       m.highOOS.push({ name: r.item_name, vel, hasPO, poDate: hasPO ? poIdx[poKey].date : null });
     }
   });
@@ -512,15 +521,23 @@ function process() {
   const pfAvgScore   = mArr.reduce((s, m) => s + m.score, 0) / mArr.length;
   const pfAvgDoc     = mArr.reduce((s, m) => s + m.avgDoc, 0) / mArr.length;
 
-  // ── Intelligence: imminent stockouts (<14d, in stock, no open PO)
+  // ── Build inv lookup for FEOOS velocity cross-reference: wh::normName -> row
+  const invLookup = {};
+  state.inv.forEach(r => {
+    const wh = (r.warehouse_name || '').trim();
+    if (!wh || WH_EXCLUDE.has(wh) || !bool(r.in_catalog)) return;
+    invLookup[wh + '::' + normName(r.item_name)] = r;
+  });
+
+  // ── Intelligence: imminent stockouts (<14d net DoC, net in-stock, catalog only)
   const imminentRows = [];
   state.inv.forEach(r => {
-    const wh  = (r.warehouse_name || '').trim();
-    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh]) return;
-    const oh  = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
-    const doc = num(r.net_days_of_cover || r.days_of_cover || 0);
-    const vel = num(r.consumption_rate || 0);
-    if (oh <= 0 || doc <= 0 || doc >= 14 || vel <= 0) return;
+    const wh = (r.warehouse_name || '').trim();
+    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh] || !bool(r.in_catalog)) return;
+    const netOH = num(r.net_inventory);
+    const doc   = num(r.net_days_of_cover || 0);
+    const vel   = num(r.consumption_rate || 0);
+    if (netOH <= 0 || doc <= 0 || doc >= 14 || vel <= 0) return;
     const poKey = wh + '::' + normName(r.item_name);
     const po    = poIdx[poKey];
     imminentRows.push({ wh, name: r.item_name, doc, vel, hasPO: !!po, poDate: po ? po.date : null });
@@ -528,27 +545,27 @@ function process() {
   imminentRows.sort((a, b) => (a.hasPO ? 1 : 0) - (b.hasPO ? 1 : 0) || a.doc - b.doc);
 
   // ── Intelligence: FEOOS items with no incoming PO
+  // FEOOS sheet uses "warehouse" field (not warehouse_name)
   const feNoPO = [];
   state.feoos.forEach(r => {
-    const wh  = (r.warehouse_name || '').trim();
+    const wh  = (r.warehouse || '').trim();
     if (!wh || WH_EXCLUDE.has(wh) || !markets[wh]) return;
-    const qty = num(r.forecasted_end_of_stock_units ?? r.feoos_qty ?? r.qty ?? 0);
+    const qty = num(r.quantity_of_feoos_items_requested_in_sales_units || 0);
     if (qty <= 0) return;
     const poKey = wh + '::' + normName(r.item_name);
     const po    = poIdx[poKey];
-    // Find velocity from inv
-    const invRow = state.inv.find(i => (i.warehouse_name||'').trim() === wh && normName(i.item_name) === normName(r.item_name));
-    const vel = invRow ? num(invRow.consumption_rate || 0) : 0;
+    const inv   = invLookup[poKey];
+    const vel   = inv ? num(inv.consumption_rate || 0) : 0;
     feNoPO.push({ wh, name: r.item_name, qty, vel, hasPO: !!po, poDate: po ? po.date : null });
   });
   feNoPO.sort((a, b) => (a.hasPO ? 1 : 0) - (b.hasPO ? 1 : 0) || b.qty - a.qty);
 
-  // ── Intelligence: OOS items across multiple markets
+  // ── Intelligence: OOS items across multiple markets (catalog, raw inventory <= 0)
   const oosMap = {}; // normName -> { name, markets: [], totalVel }
   state.inv.forEach(r => {
     const wh = (r.warehouse_name || '').trim();
-    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh]) return;
-    const oh  = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
+    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh] || !bool(r.in_catalog)) return;
+    const oh  = num(r.inventory);
     const vel = num(r.consumption_rate || 0);
     if (oh > 0) return;
     const key = normName(r.item_name);
@@ -582,19 +599,19 @@ function process() {
     .filter(v => v.pastDue > 0)
     .sort((a, b) => b.pastDue - a.pastDue || b.outstanding - a.outstanding);
 
-  // ── Intelligence: coverage distribution
+  // ── Intelligence: coverage distribution (catalog, net in-stock items only)
   let coverCrit = 0, coverLow = 0, coverOk = 0, coverHigh = 0, coverExcess = 0;
   state.inv.forEach(r => {
     const wh = (r.warehouse_name || '').trim();
-    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh]) return;
-    const oh = num(r.on_hand_saleable_units ?? r.on_hand_units ?? r.on_hand ?? 0);
-    const doc = num(r.net_days_of_cover || r.days_of_cover || 0);
-    if (oh <= 0) return; // OOS already counted separately
-    if (doc < 7)   coverCrit++;
-    else if (doc < 14)  coverLow++;
-    else if (doc <= 60) coverOk++;
+    if (!wh || WH_EXCLUDE.has(wh) || !markets[wh] || !bool(r.in_catalog)) return;
+    const netOH = num(r.net_inventory);
+    const doc   = num(r.net_days_of_cover || 0);
+    if (netOH <= 0) return; // OOS counted separately
+    if (doc < 7)         coverCrit++;
+    else if (doc < 14)   coverLow++;
+    else if (doc <= 60)  coverOk++;
     else if (doc <= 100) coverHigh++;
-    else            coverExcess++;
+    else                 coverExcess++;
   });
   const coverTotal = coverCrit + coverLow + coverOk + coverHigh + coverExcess;
 
